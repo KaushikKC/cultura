@@ -23,8 +23,7 @@ const SafeAccountSetup = () => {
       //   account,
       // });
 
-      const signer =
-        "7cf5dce086c4c251144f30a5df051916659b4f8d96e6b18e9be485aacc66d2aa";
+      const signer = "";
       console.log("Signer:", signer);
 
       if (!signer) throw new Error("Signer initialization failed.");
