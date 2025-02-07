@@ -1,26 +1,23 @@
-import React from "react";
-import Safe, {
-  PredictedSafeProps,
-  SafeAccountConfig,
-  SafeDeploymentConfig,
-} from "@safe-global/protocol-kit";
+import React, { useState } from "react";
+import Safe from "@safe-global/protocol-kit";
 import { sepolia } from "viem/chains";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useActiveAccount } from "thirdweb/react";
-import { client } from "thirdweb/client";
+import { client } from "./../thirdweb/client";
 
 const SafeAccountSetup = () => {
   const account = useActiveAccount();
+  const [loading, setLoading] = useState(false);
+  const [safeAddress, setSafeAddress] = useState("");
 
   const chain = sepolia;
 
   const getSigner = async () => {
-    const signer = await ethers5Adapter.signer.toEthers({
+    return await ethers5Adapter.signer.toEthers({
       client,
       chain,
       account,
     });
-    return signer;
   };
 
   const safeAccountConfig = {
@@ -30,66 +27,68 @@ const SafeAccountSetup = () => {
 
   const predictedSafe = {
     safeAccountConfig,
-    // More optional properties
   };
 
-  const protocolKit = async () => {
-    const protocolKit = await Safe.init({
-      provider: sepolia.rpcUrls.default.http[0],
-      signer: getSigner,
-      predictedSafe,
-    });
-    return protocolKit;
+  const deploySafe = async () => {
+    try {
+      setLoading(true);
+
+      const protocolKit = await Safe.init({
+        provider: sepolia.rpcUrls.default.http[0],
+        signer: await getSigner(),
+        predictedSafe,
+      });
+
+      const safeAddr = await protocolKit.getAddress();
+      console.log("Predicted Safe Address:", safeAddr);
+      setSafeAddress(safeAddr);
+
+      const deploymentTransaction =
+        await protocolKit.createSafeDeploymentTransaction();
+
+      const clientSafe = await protocolKit
+        .getSafeProvider()
+        .getExternalSigner();
+
+      console.log("Deploying Safe...");
+      const transactionHash = await clientSafe.sendTransaction({
+        to: deploymentTransaction.to,
+        value: BigInt(deploymentTransaction.value),
+        data: deploymentTransaction.data,
+        chain: sepolia,
+      });
+
+      console.log("Transaction Hash:", transactionHash);
+
+      const transactionReceipt = await client.waitForTransactionReceipt({
+        hash: transactionHash,
+      });
+
+      console.log("Transaction Receipt:", transactionReceipt);
+
+      const newProtocolKit = await protocolKit.connect({
+        safeAddress: safeAddr,
+      });
+
+      const isSafeDeployed = await newProtocolKit.isSafeDeployed();
+      console.log("Safe Deployed:", isSafeDeployed);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error deploying Safe:", error);
+      setLoading(false);
+    }
   };
 
-  const predictedSafeAddress = async () => {
-    const safeAddress = await protocolKit.getAddress();
-    console.log("Safe address (predicted ): ", safeAddress);
-
-    return safeAddress;
-  };
-
-  const deploymentTransaction = async () => {
-    const deploymentTransaction =
-      await protocolKit.createSafeDeploymentTransaction();
-    return deploymentTransaction;
-  };
-
-  const client_safe = async () => {
-    const client_safe = await protocolKit.getSafeProvider().getExternalSigner();
-    return client_safe;
-  };
-
-  const transaction_hash = async () => {
-    const transactionHash = await client_safe.sendTransaction({
-      to: deploymentTransaction.to,
-      value: BigInt(deploymentTransaction.value),
-      data: deploymentTransaction.data,
-      chain: sepolia,
-    });
-    return transactionHash;
-  };
-
-  const transanction_receipt = async () => {
-    const transactionReceipt = await client.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    return transactionReceipt;
-  };
-
-  const newProtocolKit = async () => {
-    const newProtocolKit = await protocolKit.connect({
-      safeAddress,
-    });
-    return newProtocolKit;
-    const isSafeDeployed = await newProtocolKit.isSafeDeployed(); // True
-    const safeAddress = await newProtocolKit.getAddress();
-    const safeOwners = await newProtocolKit.getOwners();
-    const safeThreshold = await newProtocolKit.getThreshold();
-    console.log(isSafeDeployed, safeAddress, safeOwners, safeThreshold);
-  };
-
-  return <div>SafeAccountSetup</div>;
+  return (
+    <div>
+      <h2>Safe Account Setup</h2>
+      <button onClick={deploySafe} disabled={loading}>
+        {loading ? "Deploying..." : "Deploy Safe"}
+      </button>
+      {safeAddress && <p>Safe Address: {safeAddress}</p>}
+    </div>
+  );
 };
 
 export default SafeAccountSetup;
