@@ -1,81 +1,95 @@
+import React from "react";
+import Safe, {
+  PredictedSafeProps,
+  SafeAccountConfig,
+  SafeDeploymentConfig,
+} from "@safe-global/protocol-kit";
+import { sepolia } from "viem/chains";
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useActiveAccount } from "thirdweb/react";
-import { createSmartAccountClient } from "permissionless";
-import { toSafeSmartAccount } from "permissionless/accounts";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
-import { createPublicClient, http } from "viem";
-import { gnosis } from "viem/chains";
-
-const ENTRYPOINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
+import { client } from "thirdweb/client";
 
 const SafeAccountSetup = () => {
   const account = useActiveAccount();
 
-  const setupSafeAccount = async () => {
-    if (!account) return;
+  const chain = sepolia;
 
-    console.log("Creating Safe Account...");
-    console.log("Account:", account);
-
-    const publicClient = createPublicClient({
-      transport: http(`https://rpc.ankr.com/gnosis`),
+  const getSigner = async () => {
+    const signer = await ethers5Adapter.signer.toEthers({
+      client,
+      chain,
+      account,
     });
-
-    console.log(
-      process.env.REACT_APP_PIMLICO_API_KEY,
-      "REACT_APP_PIMILICO_API_KEY"
-    );
-
-    const pimlicoClient = createPimlicoClient({
-      transport: http(
-        `https://api.pimlico.io/v1/gnosis/rpc?apikey=${process.env.REACT_APP_PIMILICO_API_KEY}`
-      ),
-      entryPoint: ENTRYPOINT_ADDRESS,
-    });
-
-    console.log(pimlicoClient, "pimlicoClient");
-
-    try {
-      const safeAccount = await toSafeSmartAccount(publicClient, {
-        entryPoint: ENTRYPOINT_ADDRESS,
-        signer: account,
-        safeVersion: "1.4.1",
-      });
-
-      const safeAccountClient = createSmartAccountClient({
-        account: safeAccount,
-        entryPoint: ENTRYPOINT_ADDRESS,
-        chain: gnosis,
-        bundlerTransport: http(
-          `https://api.pimlico.io/v1/gnosis/rpc?apikey=${process.env.REACT_APP_PIMILICO_API_KEY}`
-        ),
-        middleware: {
-          gasPrice: async () =>
-            (await pimlicoClient.getUserOperationGasPrice()).fast,
-          sponsorUserOperation: pimlicoClient.sponsorUserOperation,
-        },
-      });
-
-      console.log("Safe Account Created:", safeAccount.address);
-      return safeAccount;
-    } catch (error) {
-      console.error("Error creating Safe account:", error);
-    }
+    return signer;
   };
 
-  return (
-    <div className="space-y-4">
-      {account ? (
-        <button
-          onClick={setupSafeAccount}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Create Safe Account
-        </button>
-      ) : (
-        <div>Please connect your wallet first</div>
-      )}
-    </div>
-  );
+  const safeAccountConfig = {
+    owners: ["0xbb7462adA69561Ff596322A2f9595c28E47FD6aa"],
+    threshold: 1,
+  };
+
+  const predictedSafe = {
+    safeAccountConfig,
+    // More optional properties
+  };
+
+  const protocolKit = async () => {
+    const protocolKit = await Safe.init({
+      provider: sepolia.rpcUrls.default.http[0],
+      signer: getSigner,
+      predictedSafe,
+    });
+    return protocolKit;
+  };
+
+  const predictedSafeAddress = async () => {
+    const safeAddress = await protocolKit.getAddress();
+    console.log("Safe address (predicted ): ", safeAddress);
+
+    return safeAddress;
+  };
+
+  const deploymentTransaction = async () => {
+    const deploymentTransaction =
+      await protocolKit.createSafeDeploymentTransaction();
+    return deploymentTransaction;
+  };
+
+  const client_safe = async () => {
+    const client_safe = await protocolKit.getSafeProvider().getExternalSigner();
+    return client_safe;
+  };
+
+  const transaction_hash = async () => {
+    const transactionHash = await client_safe.sendTransaction({
+      to: deploymentTransaction.to,
+      value: BigInt(deploymentTransaction.value),
+      data: deploymentTransaction.data,
+      chain: sepolia,
+    });
+    return transactionHash;
+  };
+
+  const transanction_receipt = async () => {
+    const transactionReceipt = await client.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    return transactionReceipt;
+  };
+
+  const newProtocolKit = async () => {
+    const newProtocolKit = await protocolKit.connect({
+      safeAddress,
+    });
+    return newProtocolKit;
+    const isSafeDeployed = await newProtocolKit.isSafeDeployed(); // True
+    const safeAddress = await newProtocolKit.getAddress();
+    const safeOwners = await newProtocolKit.getOwners();
+    const safeThreshold = await newProtocolKit.getThreshold();
+    console.log(isSafeDeployed, safeAddress, safeOwners, safeThreshold);
+  };
+
+  return <div>SafeAccountSetup</div>;
 };
 
 export default SafeAccountSetup;
