@@ -16,6 +16,8 @@ function App() {
   const [error, setError] = useState("");
   const [currentMeme, setCurrentMeme] = useState(null);
 
+  console.log(currentMeme);
+
   useEffect(() => {
     fetchTrendingTopics();
     connectWallet();

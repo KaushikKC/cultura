@@ -42,6 +42,32 @@ const MOCK_TRENDING_DATA = [
   },
 ];
 
+async function generateImage(topic, caption) {
+  try {
+    const response = await hf.textToImage({
+      model: "stabilityai/stable-diffusion-2",
+      inputs: `${caption}`,
+      parameters: {
+        negative_prompt: "blurry",
+      },
+    });
+    console.log(response);
+    // Properly handle the blob/array buffer
+    if (response instanceof Blob) {
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } else if (response.arrayBuffer) {
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } else {
+      throw new Error("Unexpected response format from Stable Diffusion");
+    }
+  } catch (error) {
+    console.error("Stable Diffusion failed:", error);
+    return await generateFallbackImage(topic);
+  }
+}
+
 // Fallback image generation using another API
 async function generateFallbackImage(prompt) {
   try {
@@ -52,6 +78,25 @@ async function generateFallbackImage(prompt) {
     return Buffer.from(response.data);
   } catch (error) {
     throw new Error("Fallback image generation failed: " + error.message);
+  }
+}
+
+async function uploadToIPFS(imageBuffer, metadata) {
+  const formData = new FormData();
+  formData.append("file", imageBuffer, {
+    filename: "meme.png",
+    contentType: "image/png",
+  });
+
+  try {
+    const result = await pinata.pinFileToIPFS(formData, {
+      pinataMetadata: metadata,
+      pinataOptions: { cidVersion: 1 },
+    });
+    return result;
+  } catch (error) {
+    console.error("IPFS upload failed:", error);
+    throw error;
   }
 }
 
@@ -91,51 +136,90 @@ app.post("/api/generate", async (req, res) => {
       },
     });
 
+    // let imageBuffer;
+    // try {
+    //   const image = await hf.textToImage({
+    //     model: "stabilityai/stable-diffusion-2",
+    //     inputs: `${caption.generated_text}`,
+    //     parameters: {
+    //       negative_prompt: "blurry",
+    //     },
+    //   });
+    //   // Try Stable Diffusion first
+    //   //   const image = await hf.textToImage({
+    //   //     // provider: "replicate",
+    //   //     model: "stabilityai/stable-diffusion-2",
+    //   //     inputs: `${topic} ${caption.generated_text}`,
+    //   //     parameters: {
+    //   //       negative_prompt: "blurry, bad quality",
+    //   //     },
+    //   //   });
+    //   imageBuffer = Buffer.from(await image.arrayBuffer());
+    //   console.log(imageBuffer);
+    // } catch (imageError) {
+    //   console.log("Stable Diffusion failed", imageError);
+    //   //   imageBuffer = await generateFallbackImage(topic);
+    // }
+
     let imageBuffer;
     try {
-      // Try Stable Diffusion first
-      const image = await hf.textToImage({
-        model: "stabilityai/stable-diffusion-2",
-        inputs: `${topic} ${caption.generated_text}`,
-        parameters: {
-          negative_prompt: "blurry, bad quality",
-        },
+      imageBuffer = await generateImage(topic, caption.generated_text);
+    } catch (error) {
+      return res.status(500).json({
+        error: "Image generation failed",
+        details: error.message,
       });
-      imageBuffer = Buffer.from(await image.arrayBuffer());
-    } catch (imageError) {
-      console.log("Stable Diffusion failed, using fallback image generation");
-      imageBuffer = await generateFallbackImage(topic);
     }
 
     // Convert to base64 for direct display
     const base64Image = imageBuffer.toString("base64");
 
     // Upload to IPFS via Pinata
-    const imageResult = await pinata.pinFileToIPFS(imageBuffer, {
-      pinataMetadata: {
-        name: `${topic}-image`,
-      },
-    });
+    // const imageResult = await pinata.pinFileToIPFS(imageBuffer, {
+    //   pinataMetadata: {
+    //     name: `${topic}-image`,
+    //   },
+    // });
 
-    // Create and pin metadata
-    const metadata = {
-      caption: caption.generated_text,
-      image_cid: imageResult.IpfsHash,
-      timestamp: new Date().toISOString(),
-    };
+    // // Create and pin metadata
+    // const metadata = {
+    //   caption: caption.generated_text,
+    //   image_cid: imageResult.IpfsHash,
+    //   timestamp: new Date().toISOString(),
+    // };
 
-    const metadataResult = await pinata.pinJSONToIPFS(metadata);
+    // const metadataResult = await pinata.pinJSONToIPFS(metadata);
+
+    let ipfsResult;
+    try {
+      ipfsResult = await uploadToIPFS(imageBuffer, {
+        name: `${topic}-meme`,
+        keyvalues: {
+          topic,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      // Return base64 even if IPFS fails
+      return res.json({
+        caption: caption.generated_text,
+        imageUrls: {
+          base64: `data:image/jpeg;base64,${base64Image}`,
+        },
+        error: "IPFS upload failed, but image generation succeeded",
+      });
+    }
 
     // Store in history
     const memeRecord = {
       userAddress,
-      ipfsCid: metadataResult.IpfsHash,
-      imageCid: imageResult.IpfsHash,
+      ipfsCid: ipfsResult.IpfsHash,
+      imageCid: ipfsResult.IpfsHash,
       topic,
       caption: caption.generated_text,
       timestamp: new Date().toISOString(),
       imageUrls: {
-        ipfs: `https://gateway.pinata.cloud/ipfs/${imageResult.IpfsHash}`,
+        ipfs: `https://gateway.pinata.cloud/ipfs/${ipfsResult.IpfsHash}`,
         base64: `data:image/jpeg;base64,${base64Image}`,
       },
     };
