@@ -1,5 +1,5 @@
 import { ConnectButton } from "thirdweb/react";
-import { client } from "./client";
+// import { client } from "./client";
 import { useNavigate } from "react-router-dom";
 import { useActiveAccount } from "thirdweb/react";
 
@@ -9,7 +9,7 @@ export default function Wallet() {
 
   return (
     <div>
-      <ConnectButton client={client} />
+      {/* <ConnectButton client={client} /> */}
       {account && (
         <button
           onClick={() => navigate("/safe")}

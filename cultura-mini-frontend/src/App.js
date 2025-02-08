@@ -1,11 +1,15 @@
 // App.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 // import { ethers } from "ethers";
 // import { contractABI } from "./contractABI"; // You'll need to create this from your Solidity contract
 import axios from "axios";
+import { useConnect } from "thirdweb/react";
 
 const CONTRACT_ADDRESS = "YOUR_CONTRACT_ADDRESS";
 const API_BASE_URL = "http://localhost:3001";
+
+const TWITTER_AUTH_URL = process.env.REACT_APP_TWITTER_AUTH_URL;
+const FARCASTER_HUB_URL = process.env.REACT_APP_FARCASTER_HUB_URL;
 
 function App() {
   const [topics, setTopics] = useState([]);
@@ -15,8 +19,68 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentMeme, setCurrentMeme] = useState(null);
+  const [isTwitterConnected, setIsTwitterConnected] = useState(false);
+  const [isFarcasterConnected, setIsFarcasterConnected] = useState(false);
+  const { address } = useConnect();
 
-  console.log(currentMeme);
+  const connectTwitter = useCallback(async () => {
+    try {
+      const popup = window.open(
+        TWITTER_AUTH_URL,
+        "Twitter Login",
+        "width=600,height=600"
+      );
+
+      window.addEventListener("message", async (event) => {
+        if (event.data.type === "TWITTER_AUTH_SUCCESS") {
+          setIsTwitterConnected(true);
+          localStorage.setItem("twitter_token", event.data.token);
+          if (popup) popup.close();
+        }
+      });
+    } catch (error) {
+      console.error("Twitter connection failed:", error);
+    }
+  }, []);
+
+  const connectFarcaster = useCallback(async () => {
+    try {
+      const response = await axios.post(`${FARCASTER_HUB_URL}/connect`, {
+        address: address,
+      });
+
+      if (response.data.success) {
+        setIsFarcasterConnected(true);
+        localStorage.setItem("farcaster_token", response.data.token);
+      }
+    } catch (error) {
+      console.error("Farcaster connection failed:", error);
+    }
+  }, [address]);
+
+  const shareMeme = async (platform) => {
+    try {
+      const token = localStorage.getItem(`${platform}_token`);
+      if (!token) throw new Error(`Not connected to ${platform}`);
+
+      const payload = {
+        image: currentMeme.imageUrl,
+        text: currentMeme.caption,
+        token: token,
+      };
+
+      const endpoint =
+        platform === "twitter" ? "/api/share/twitter" : "/api/share/farcaster";
+
+      const response = await axios.post(endpoint, payload);
+
+      if (response.data.success) {
+        return { success: true, platform };
+      }
+    } catch (error) {
+      console.error(`Failed to share on ${platform}:`, error);
+    }
+  };
 
   useEffect(() => {
     fetchTrendingTopics();
@@ -184,6 +248,39 @@ function App() {
               </div>
             ))}
           </div>
+        </div>
+        <div className="flex gap-4">
+          {!isTwitterConnected ? (
+            <button
+              onClick={connectTwitter}
+              className="bg-blue-400 text-white px-4 py-2 rounded-lg"
+            >
+              Connect Twitter
+            </button>
+          ) : (
+            <button
+              onClick={() => shareMeme("twitter")}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+            >
+              Share on Twitter
+            </button>
+          )}
+
+          {!isFarcasterConnected ? (
+            <button
+              onClick={connectFarcaster}
+              className="bg-purple-400 text-white px-4 py-2 rounded-lg"
+            >
+              Connect Farcaster
+            </button>
+          ) : (
+            <button
+              onClick={() => shareMeme("farcaster")}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg"
+            >
+              Share on Farcaster
+            </button>
+          )}
         </div>
       </div>
 
