@@ -3,7 +3,9 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import App from "./App";
-import Wallet from "./components/wallet/Wallet";
+import Wallet from "./components/wallet/thirdweb/Wallet";
+import SafeAccountSetup from "./components/wallet/safe/SafeAccountSetup";
+import { ThirdwebProvider } from "thirdweb/react";
 
 const router = createBrowserRouter([
   {
@@ -14,11 +16,17 @@ const router = createBrowserRouter([
     path: "/home",
     element: <App />,
   },
+  {
+    path: "/safe",
+    element: <SafeAccountSetup />,
+  },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThirdwebProvider>
+      <RouterProvider router={router} />
+    </ThirdwebProvider>
   </React.StrictMode>
 );
