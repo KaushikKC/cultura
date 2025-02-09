@@ -103,7 +103,7 @@ const SafeAccountSetup = () => {
   };
 
   //reinitiate a safe using the docs on uniswap
-  //0xAD492865c3b4Fd9c1c0A03F2060F6C26ADF4F9A4
+
   const doTransaction = async (currentProtocolKit) => {
     const human_signer_wallet2 = "0x2397472eBB9b20bE3a612eBaC94e7079Ba9B3cA3";
     console.log("inside doTransaction");
@@ -161,6 +161,8 @@ const SafeAccountSetup = () => {
       }
   }
   };
+
+
 
   const deploySafe_Agent = async () => {
     try {
