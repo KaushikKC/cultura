@@ -103,6 +103,8 @@ const SafeAccountSetup = () => {
   };
 
   //reinitiate a safe using the docs on uniswap
+  // working .... 
+  // multisig (one acting as ai agent and another acts as human signer method)
 
   const doTransaction = async (currentProtocolKit) => {
     const human_signer_wallet2 = "0x2397472eBB9b20bE3a612eBaC94e7079Ba9B3cA3";
