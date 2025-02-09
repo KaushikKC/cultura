@@ -46,7 +46,7 @@ function App() {
   const connectFarcaster = useCallback(async () => {
     try {
       const response = await axios.post(`${FARCASTER_HUB_URL}/connect`, {
-        address: address,
+        address: address
       });
 
       if (response.data.success) {
@@ -66,7 +66,7 @@ function App() {
       const payload = {
         image: currentMeme.imageUrl,
         text: currentMeme.caption,
-        token: token,
+        token: token
       };
 
       const endpoint =
@@ -91,7 +91,7 @@ function App() {
     try {
       if (window.ethereum) {
         const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
+          method: "eth_requestAccounts"
         });
         setUserAddress(accounts[0]);
         fetchMemeHistory(accounts[0]);
@@ -131,12 +131,12 @@ function App() {
       // Generate meme content
       const response = await axios.post(`${API_BASE_URL}/api/generate`, {
         topic: topic.title,
-        userAddress,
+        userAddress
       });
       setCurrentMeme({
         ...response.data,
         imageUrl: `https://gateway.pinata.cloud/ipfs/${response.data.imageCid}`,
-        fallbackImageUrl: response.data.imageUrls?.base64,
+        fallbackImageUrl: response.data.imageUrls?.base64
       });
 
       // Register on blockchain
@@ -162,7 +162,7 @@ function App() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container min-h-screen mx-auto px-4 py-8 bg-[#412E2A]">
       <h1 className="text-4xl font-bold mb-8">Cultura Mini</h1>
 
       {!userAddress ? (

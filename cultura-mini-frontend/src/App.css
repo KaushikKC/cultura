@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -26,7 +26,7 @@
 
 .App-link {
   color: #61dafb;
-}
+} */
 
 @keyframes App-logo-spin {
   from {
@@ -35,4 +35,146 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@layer utilities {
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fadeInScale {
+    animation: fadeInScale 1.5s ease-out forwards;
+  }
+
+  @keyframes fadeInText {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeInText {
+    animation: fadeInText 1s ease-out 2s forwards; /* 2s delay */
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes focus-pulse {
+  0%,
+  100% {
+    border-color: #412e2a;
+  }
+  50% {
+    border-color: #b4b44f;
+  }
+}
+
+@keyframes glitch-slice {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  10% {
+    clip-path: inset(0 5% 0 0);
+  }
+  20% {
+    clip-path: inset(0 80% 0 0);
+  }
+  30% {
+    clip-path: inset(0 10% 0 0);
+  }
+  40% {
+    clip-path: inset(0 50% 0 0);
+  }
+  50% {
+    clip-path: inset(0 30% 0 0);
+  }
+  60% {
+    clip-path: inset(0 70% 0 0);
+  }
+  70% {
+    clip-path: inset(0 15% 0 0);
+  }
+  80% {
+    clip-path: inset(0 90% 0 0);
+  }
+  90% {
+    clip-path: inset(0 5% 0 0);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+.smooth-type:focus::before {
+  content: "";
+  @apply absolute inset-0 z-10;
+  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0) 100%);
+  animation: type-gradient 2s linear infinite;
+}
+
+@keyframes type-gradient {
+  0% {
+    background-position: 300px 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes colorAnim {
+  0% {
+    fill: white;
+  }
+  50% {
+    fill: #fbc638;
+  }
+  100% {
+    fill: white;
+  }
+}
+.animate-colorAnim {
+  animation: colorAnim 1s infinite 0.2s;
+}
+.-skew-x-15 {
+  transform: skewX(-15deg);
+}
+.skew-x-15 {
+  transform: skewX(15deg);
+}
+button:hover .one {
+  animation: colorAnim 1s infinite 0.6s;
+}
+button:hover .two {
+  animation: colorAnim 1s infinite 0.4s;
 }
