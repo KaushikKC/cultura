@@ -18,14 +18,21 @@ const SafeAccountSetup = () => {
       if (!account) throw new Error("No active account found.");
 
       const chain = sepolia;
-      const signer = ""; // pass your signer here, e.g. from thirdweb or ethers.js or private key
+      console.log(
+        process.env.REACT_APP_PRIVATE_KEY,
+        "process.env.REACT_APP_PRIVATE_KEY"
+      );
+      console.log(process.env);
+
+      const signer = process.env.REACT_APP_PRIVATE_KEY; // pass your signer here, e.g. from thirdweb or ethers.js or private key
+      //should be changed
 
       console.log("Signer:", signer);
 
       if (!signer) throw new Error("Signer initialization failed.");
-
+      const account_address = account.address;
       const safeAccountConfig = {
-        owners: [""], // pass your owners here associated with the signer
+        owners: [account_address], // pass your owners here associated with the signer
         // after deploying a safe account, the signer acts as your private key
         threshold: 1,
       };
