@@ -103,11 +103,19 @@ const SafeAccountSetup = () => {
   };
 
   //reinitiate a safe using the docs on uniswap
+  //0xAD492865c3b4Fd9c1c0A03F2060F6C26ADF4F9A4
   const doTransaction = async (currentProtocolKit) => {
-    const human_signer = "0x4D4773a3A4576408Deb30d6014e09AaC1c179018";
+    const human_signer_wallet2 = "0x2397472eBB9b20bE3a612eBaC94e7079Ba9B3cA3";
     console.log("inside doTransaction");
+    const preExistingSafe = await Safe.init({
+      provider:
+        "https://eth-sepolia.g.alchemy.com/v2/qf8pc1s5D85eDw9E_r_Ck45C6WoRQqkL",
+      signer:
+        "1f6496fb9522c1fbb822222eb59e4db2a6165d8bd99f0307fd138797996999a2", //wallet 2 private key
+      safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d", // safe address deployed for wallet 2 and the respective signer is above
+    });
 
-    const tx = await currentProtocolKit.createTransaction({
+    const tx = await preExistingSafe.createTransaction({
       transactions: [
         {
           to: "0x0000000000000000000000000000000000000000",
@@ -117,25 +125,41 @@ const SafeAccountSetup = () => {
       ],
     });
 
+    console.log(tx,'tx')
     // Every transaction has a Safe (Smart Account) Transaction Hash different than the final transaction hash
-    const safeTxHash = await currentProtocolKit.getTransactionHash(tx);
+    const safeTxHash = await preExistingSafe.getTransactionHash(tx);
+    console.log(safeTxHash, "safeTxHash");
     // The AI agent signs this Safe (Smart Account) Transaction Hash
-    const signature = await currentProtocolKit.signHash(safeTxHash);
-
+    const signature = await preExistingSafe.signHash(safeTxHash);
+    console.log(signature, "signature");
     const apiKit = new SafeApiKit({
       chainId: 11155111n,
     });
 
-    // Now the transaction with the signature is sent to the Transaction Service with the Api Kit:
-    const agent_transaction = await apiKit.proposeTransaction({
-      safeAddress: human_signer,
-      safeTransactionData: tx.data,
-      safeTxHash,
-      senderSignature: signature.data,
-      senderAddress: agentSafeAddress,
+    
+    try {
+      const agent_transaction = await apiKit.proposeTransaction({
+          safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d",
+          safeTransactionData: tx.data,
+          safeTxHash,
+          senderSignature: signature.data,
+          senderAddress: human_signer_wallet2,
+      });
+      console.log("Proposing transaction with:", {
+        safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d",
+        safeTransactionData: tx.data,
+        safeTxHash,
+        senderSignature: signature.data,
+        senderAddress: human_signer_wallet2
     });
-
-    console.log("Agent Transaction:", agent_transaction);
+      console.log("Agent Transaction:", agent_transaction);
+  } catch (error) {
+      console.error("Error in proposeTransaction:", error);
+      // Log the actual response if it exists
+      if (error.response) {
+          console.error("Response data:", error.response.data);
+      }
+  }
   };
 
   const deploySafe_Agent = async () => {
@@ -151,9 +175,10 @@ const SafeAccountSetup = () => {
       console.log("Signer:", signer);
 
       if (!signer) throw new Error("Signer initialization failed.");
-      const human_signer = "0x4D4773a3A4576408Deb30d6014e09AaC1c179018"; //deployed safe address of wallet1
+      const human_signer1 = "0xbb7462adA69561Ff596322A2f9595c28E47FD6aa"; //deployed safe address of wallet1
+      const human_signer2 = "0xC75BAbFCe9E6bcB5f72D2A6031bdc41c38b9426a";
       const safeAccountConfig = {
-        owners: [account, human_signer], // pass your owners here associated with the signer
+        owners: [account, human_signer1,human_signer2], // pass your owners here associated with the signer
         // after deploying a safe account, the signer acts as your private key
         threshold: 2,
       };
@@ -247,11 +272,11 @@ const SafeAccountSetup = () => {
 
       // Now the transaction with the signature is sent to the Transaction Service with the Api Kit:
       const agent_transaction = await apiKit.proposeTransaction({
-        safeAddress: human_signer,
+        safeAddress: agentSafeAddress,
         safeTransactionData: tx.data,
         safeTxHash,
         senderSignature: signature.data,
-        senderAddress: agentSafeAddress,
+        senderAddress: account,
       });
 
       console.log("Agent Transaction:", agent_transaction);
