@@ -1,6 +1,7 @@
 import React from "react";
 import MemeCard from "../components/MemeCard";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 function MemeHistory() {
   // Sample meme history data - replace with your actual data source
@@ -43,6 +44,7 @@ function MemeHistory() {
             </div>}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

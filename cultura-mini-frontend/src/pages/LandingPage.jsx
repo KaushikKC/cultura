@@ -41,6 +41,7 @@
 
 import bg from "../images/bg.svg";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function LandingPage() {
   return (
@@ -81,6 +82,7 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

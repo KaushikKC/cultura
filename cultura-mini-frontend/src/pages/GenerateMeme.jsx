@@ -1,6 +1,7 @@
 import React from "react";
 import MemeCard from "../components/MemeCard";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 function GenerateMeme() {
   return (
@@ -19,6 +20,7 @@ function GenerateMeme() {
           <MemeCard />
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -9,7 +9,7 @@ function Navbar() {
           <Link to="/dashboard" className="">
             Trending
           </Link>
-          <Link to="/" className="">
+          <Link to="/history" className="">
             Meme History
           </Link>
 

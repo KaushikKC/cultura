@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import TopicCard from "../components/TopicCard";
+import Footer from "../components/Footer";
 
 function Dashboard() {
   return (
@@ -40,19 +41,7 @@ function Dashboard() {
             <span>Prompt</span>
           </div>
         </div>
-        {/* <div className="relative w-[250px] font-mono">
-          <input
-            type="text"
-            placeholder="TYPE HERE"
-            className="w-full p-4 text-lg font-bold text-black bg-white border-4 border-black outline-none transition-all duration-300 ease-in-out
-        shadow-[5px_5px_0px_black,10px_10px_0px_#4a90e2] focus:shadow-[3px_3px_0px_black,7px_7px_0px_#4a90e2] 
-        focus:border-[#4a90e2] placeholder-gray-600 focus:placeholder-transparent"
-          />
 
-          <label className="absolute -top-7 left-0 px-3 py-1 text-sm font-bold text-white bg-black transition-transform duration-300 ease-in-out transform -rotate-1 focus-within:rotate-0 focus-within:scale-105 focus-within:bg-[#4a90e2]">
-            SMOOTH BRUTALIST
-          </label>
-        </div> */}
         <div className="flex justify-center items-center gap-10 p-10">
           <div className="group relative w-[300px] font-mono">
             <input
@@ -112,6 +101,7 @@ function Dashboard() {
           </button>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
