@@ -6,10 +6,10 @@ function Navbar() {
     <nav className="font-poppins bg-[#412E2A] w-full text-white">
       <div className="flex justify-end my-5 mx-20 ">
         <div className="font-poppins space-x-20 text-md flex items-center">
-          <Link href="/dashboard" className="">
+          <Link to="/dashboard" className="">
             Trending
           </Link>
-          <Link href="/" className="">
+          <Link to="/" className="">
             Meme History
           </Link>
 
