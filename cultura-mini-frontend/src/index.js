@@ -10,43 +10,46 @@ import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import GenerateMeme from "./pages/GenerateMeme";
 import MemeHistory from "./pages/MemeHistory";
+import { SafeProvider } from "./components/context/SafeContext";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Wallet />
+    element: <Wallet />,
   },
   {
     path: "/home",
-    element: <App />
+    element: <App />,
   },
   {
     path: "/safe",
-    element: <SafeAccountSetup />
+    element: <SafeAccountSetup />,
   },
   {
     path: "/landingpage",
-    element: <LandingPage />
+    element: <LandingPage />,
   },
   {
     path: "/dashboard",
-    element: <Dashboard />
+    element: <Dashboard />,
   },
   {
     path: "/meme",
-    element: <GenerateMeme />
+    element: <GenerateMeme />,
   },
   {
     path: "/history",
-    element: <MemeHistory />
-  }
+    element: <MemeHistory />,
+  },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <ThirdwebProvider>
-      <RouterProvider router={router} />
-    </ThirdwebProvider>
+    <SafeProvider>
+      <ThirdwebProvider>
+        <RouterProvider router={router} />
+      </ThirdwebProvider>
+    </SafeProvider>
   </React.StrictMode>
 );
