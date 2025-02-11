@@ -17,7 +17,10 @@ function Navbar() {
           </Link>
 
           <button className="cursor-pointer text-[#808000] font-semibold uppercase bg-[#D9D9D9] px-4 py-2 active:translate-x-0.5 active:translate-y-0.5 hover:shadow-[0.5rem_0.5rem_#D1B29A,-0.5rem_-0.5rem_#808000] transition">
-            <ConnectButton client={client} />
+            <ConnectButton client={client} 
+              connectButton={{ label: "Connect Wallet" }}
+              connectModal={{ size: "wide" }}
+            />
           </button>
         </div>
       </div>
