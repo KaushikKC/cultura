@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import {client} from "./wallet/thirdweb/client" 
+import {ConnectButton} from "thirdweb/react";
 
 function Navbar() {
   return (
@@ -9,12 +11,13 @@ function Navbar() {
           <Link to="/dashboard" className="">
             Trending
           </Link>
+        
           <Link to="/history" className="">
             Meme History
           </Link>
 
           <button className="cursor-pointer text-[#808000] font-semibold uppercase bg-[#D9D9D9] px-4 py-2 active:translate-x-0.5 active:translate-y-0.5 hover:shadow-[0.5rem_0.5rem_#D1B29A,-0.5rem_-0.5rem_#808000] transition">
-            Connect Wallet
+            <ConnectButton client={client} />
           </button>
         </div>
       </div>
