@@ -21,12 +21,12 @@ const SafeAccountSetup = () => {
 
       const chain = sepolia;
       console.log(
-        process.env.REACT_APP_PRIVATE_KEY,
+        process.env.REACT_APP_PRIVATE_KEY_WALLET_USER_1,
         "process.env.REACT_APP_PRIVATE_KEY"
       );
       console.log(process.env);
 
-      const signer = process.env.REACT_APP_PRIVATE_KEY; // pass your signer here, e.g. from thirdweb or ethers.js or private key
+      const signer = process.env.REACT_APP_PRIVATE_KEY_WALLET_USER_1; // pass your signer here, e.g. from thirdweb or ethers.js or private key
       //should be changed
 
       console.log("Signer:", signer);

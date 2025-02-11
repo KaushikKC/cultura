@@ -2,8 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {client} from "./wallet/thirdweb/client" 
 import {ConnectButton} from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
+
 
 function Navbar() {
+  const account = useActiveAccount();
   return (
     <nav className="font-poppins bg-[#412E2A] w-full text-white">
       <div className="flex justify-end my-5 mx-20 ">
@@ -25,7 +28,7 @@ function Navbar() {
         </div>
       </div>
     </nav>
-  );
+  );        
 }
 
 export default Navbar;
