@@ -8,11 +8,13 @@ import OpenAI from "openai";
 import { account, client } from "../utils/utils.ts";
 import { uploadJSONToIPFS } from "../utils/uploadToIpfs.ts";
 import { createHash } from "crypto";
-import { useSafe } from "../components/context/SafeContext.js";
+import { useActiveAccount } from "thirdweb/react";
+// import { useSafe } from "../components/context/SafeContext.js";
 
 const API_BASE_URL = "http://localhost:3001";
 
 function Dashboard() {
+  const account = useActiveAccount();
   const navigate = useNavigate();
   const [userAddress, setUserAddress] = useState(
     "0x5BDf4cE6749d7e93c05897fa23871C280BF59b5b"
@@ -23,7 +25,7 @@ function Dashboard() {
   const [currentMeme, setCurrentMeme] = useState(null);
   const [promptInput, setPromptInput] = useState("");
 
-  const {safeAddress} = useSafe();
+  // const {safeAddress} = useSafe();
 
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -56,7 +58,7 @@ function Dashboard() {
           {
             name: "Jacob Tucker",
             contributionPercent: 100,
-            address: safeAddress ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}` : "",
+            address: account.address,
 
           }
         ]

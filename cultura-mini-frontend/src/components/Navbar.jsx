@@ -3,25 +3,25 @@ import { Link } from "react-router-dom";
 import { client } from "./wallet/thirdweb/client";
 import { ConnectButton } from "thirdweb/react";
 import { useActiveAccount } from "thirdweb/react";
-import { useSafe } from "./context/SafeContext";
+// import { useSafe } from "./context/SafeContext";
 
 function Navbar() {
   const [showPopup, setShowPopup] = useState(false);
   const account = useActiveAccount();
-  const { safeAddress, deploySafe, loading } = useSafe();
+  // const { safeAddress, deploySafe, loading } = useSafe();
 
-  useEffect(
-    () => {
-      const initializeSafe = async () => {
-        if (account && !safeAddress) {
-          await deploySafe(account);
-        }
-      };
+  // useEffect(
+  //   () => {
+  //     const initializeSafe = async () => {
+  //       if (account && !safeAddress) {
+  //         await deploySafe(account);
+  //       }
+  //     };
 
-      initializeSafe();
-    },
-    [account, deploySafe, safeAddress]
-  );
+  //     initializeSafe();
+  //   },
+  //   [account, deploySafe, safeAddress]
+  // );
 
   return (
     <nav className="font-poppins bg-[#412E2A] w-full text-white">
@@ -87,14 +87,14 @@ function Navbar() {
                   connectModal={{ size: "wide" }}
                 />
               </div>
-              {account &&
+              {/* {account &&
                 safeAddress &&
                 <span className="text-sm text-white">
                   Safe Account:{" "}
                   {`${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`}
                 </span>}
               {loading &&
-                <span className="text-sm text-white">Deploying Safe...</span>}
+                <span className="text-sm text-white">Deploying Safe...</span>} */}
             </div>
           </div>
         </div>
