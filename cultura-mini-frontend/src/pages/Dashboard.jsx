@@ -5,13 +5,18 @@ import TopicCard from "../components/TopicCard";
 import Footer from "../components/Footer";
 import axios from "axios";
 import OpenAI from "openai";
-import { account, client } from "../utils/utils.ts";
+import { client, nftCollectionAddress } from "../utils/utils.js";
 import { uploadJSONToIPFS } from "../utils/uploadToIpfs.ts";
 import { createHash } from "crypto";
 import { useActiveAccount } from "thirdweb/react";
+import { PIL_TYPE } from "@story-protocol/core-sdk";
+import { LicenseTerms } from "@story-protocol/core-sdk";
+import { zeroAddress } from "viem";
+import { zeroHash } from "viem";
+
 // import { useSafe } from "../components/context/SafeContext.js";
 
-const API_BASE_URL = "http://localhost:3001";
+// const API_BASE_URL = "http://localhost:3001";
 
 function Dashboard() {
   const account = useActiveAccount();
@@ -32,8 +37,41 @@ function Dashboard() {
     dangerouslyAllowBrowser: true,
   });
 
+  const commercialRemixTerms = {
+    transferable: true,
+    royaltyPolicy: "0xbe54fb168b3c982b7aae60db6cf75bd8447b390e", // insert RoyaltyPolicyLAP address from https://docs.story.foundation/docs/deployed-smart-contracts
+    defaultMintingFee: BigInt(0),
+    expiration: BigInt(0),
+    commercialUse: true,
+    commercialAttribution: true,
+    commercializerChecker: zeroAddress,
+    commercializerCheckerData: zeroAddress,
+    commercialRevShare: 50, // can claim 50% of derivative revenue
+    commercialRevCeiling: BigInt(0),
+    derivativesAllowed: true,
+    derivativesAttribution: true,
+    derivativesApproval: false,
+    derivativesReciprocal: true,
+    derivativeRevCeiling: BigInt(0),
+    currency: "0x1514000000000000000000000000000000000000", // insert $WIP address from https://docs.story.foundation/docs/deployed-smart-contracts
+    uri: "",
+  };
+
+  const licensingConfig = {
+    isSet: false,
+    mintingFee: BigInt(0),
+    licensingHook: zeroAddress,
+    hookData: zeroHash,
+    commercialRevShare: 0,
+    disabled: false,
+    expectMinimumGroupRewardShare: 0,
+    expectGroupRewardPool: zeroAddress,
+  };
+
   const generateMeme = async (topic) => {
     try {
+      console.log("Generating meme for topic:", topic);
+      setLoading(true);
       const image = await openai.images.generate({
         model: "dall-e-2",
         prompt: `Create a high-quality, funny meme-style image based on the topic: "${topic}". 
@@ -77,7 +115,7 @@ function Dashboard() {
           },
           {
             key: "Prompt",
-            value: "A cute baby sea otter",
+            value: `${topic}`,
           },
         ],
       };
@@ -91,7 +129,33 @@ function Dashboard() {
         .update(JSON.stringify(nftMetadata))
         .digest("hex");
 
-      console.log(ipIpfsHash, "IP", nftIpfsHash, "nft");
+      console.log(ipIpfsHash, "IPipfshash", nftIpfsHash, "nftIPFS-hash");
+      console.log(ipHash, "IPhash", nftHash, "nftHash");
+      console.log(nftCollectionAddress, "nftCollectionAddress");
+
+      console.log(PIL_TYPE.COMMERCIAL_REMIX, "PIL_TYPE.COMMERCIAL_REMIX");
+
+      const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
+        spgNftContract: nftCollectionAddress,
+        licenseTermsData: [{ terms: commercialRemixTerms, licensingConfig }], // IP already has non-commercial social remixing terms. You can add more here.
+        // set to true to mint ip with same nft metadata
+        allowDuplicates: true,
+        ipMetadata: {
+          ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsHash}`,
+          nftMetadataURI: `https://ipfs.io/ipfs/${nftIpfsHash}`,
+          ipMetadataHash: `0x${ipHash}`,
+          nftMetadataHash: `0x${nftHash}`,
+        },
+        txOptions: { waitForTransaction: true },
+      });
+
+      console.log(response, "response from mintAndRegisterIpAssetWithPilTerms");
+      console.log(`
+        Token ID: ${response.tokenId}, 
+        IPA ID: ${response.ipId}, 
+        License Terms ID: ${response.licenseTermsIds}
+      `);
+      setLoading(false);
 
       // Navigate to meme page with topic and image URL
       navigate("/meme", {
