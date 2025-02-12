@@ -87,7 +87,8 @@ const SafeAccountSetup = () => {
 
         console.log("Transaction Hash:", transactionHash);
 
-        const transactionReceipt = await client.getTransactionReceipt(
+        const transactionReceipt = await client.getTransactionReceipt( //clientSafe i guess
+          
           transactionHash
         );
 
