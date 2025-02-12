@@ -2,6 +2,30 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import Safe from "@safe-global/protocol-kit";
 import { sepolia } from "viem/chains";
+import { defineChain } from "viem";
+
+export const storyTestnet = defineChain({
+  id: 1315,
+  name: "Story Aeneid Testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "IP",
+    symbol: "IP",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://aeneid.storyrpc.io"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Blockscout Explorer",
+      url: "https://aeneid.storyscan.xyz/",
+    },
+    // here comes a contract object // you can view that from viem
+  },
+});
+
 const SafeContext = createContext();
 export const SafeProvider = ({ children }) => {
   const [safeAddress, setSafeAddress] = useState("");
@@ -13,6 +37,8 @@ export const SafeProvider = ({ children }) => {
       setLoading(true);
       if (!account) throw new Error("No active account found.");
       const chain = sepolia;
+      // const chain = storyTestnet;
+
       const signer = process.env.REACT_APP_PRIVATE_KEY_WALLET_USER_1;
       if (!signer) throw new Error("Signer initialization failed.");
 

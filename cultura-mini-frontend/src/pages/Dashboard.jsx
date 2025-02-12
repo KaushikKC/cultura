@@ -8,6 +8,7 @@ import OpenAI from "openai";
 import { account, client } from "../utils/utils.ts";
 import { uploadJSONToIPFS } from "../utils/uploadToIpfs.ts";
 import { createHash } from "crypto";
+import { useSafe } from "../components/context/SafeContext.js";
 
 const API_BASE_URL = "http://localhost:3001";
 
@@ -21,6 +22,8 @@ function Dashboard() {
   const [error, setError] = useState("");
   const [currentMeme, setCurrentMeme] = useState(null);
   const [promptInput, setPromptInput] = useState("");
+
+  const {safeAddress} = useSafe();
 
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -53,7 +56,8 @@ function Dashboard() {
           {
             name: "Jacob Tucker",
             contributionPercent: 100,
-            address: account.address
+            address: safeAddress ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}` : "",
+
           }
         ]
       });
