@@ -57,7 +57,7 @@ export default function LandingPage() {
           {/* Background Image with Animation */}
           <img
             src={bg}
-            className="absolute inset-0 w-full h-full object-contain rounded-2xl p-5
+            className="absolute inset-0 w-full h-full object-contain rounded-2xl p-5 -top-5
               opacity-0 scale-95 animate-fadeInScale"
             alt="Background"
           />

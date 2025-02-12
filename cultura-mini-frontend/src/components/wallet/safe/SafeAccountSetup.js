@@ -36,7 +36,7 @@ const SafeAccountSetup = () => {
       const safeAccountConfig = {
         owners: [account_address], // pass your owners here associated with the signer
         // after deploying a safe account, the signer acts as your private key
-        threshold: 1,
+        threshold: 1
       };
 
       console.log("Deploying Safe with Config:", safeAccountConfig);
@@ -44,7 +44,7 @@ const SafeAccountSetup = () => {
       let protocolKitInstance = await Safe.init({
         provider: chain.rpcUrls.default.http[0],
         signer,
-        predictedSafe: { safeAccountConfig },
+        predictedSafe: { safeAccountConfig }
       });
 
       const safeAddr = await protocolKitInstance.getAddress();
@@ -56,7 +56,7 @@ const SafeAccountSetup = () => {
       if (isDeployed) {
         console.log("Safe already deployed, connecting...");
         protocolKitInstance = await protocolKitInstance.connect({
-          safeAddress,
+          safeAddress
         });
         setProtocolKit(protocolKitInstance);
         console.log(protocolKitInstance, "protocolKitInstance");
@@ -82,7 +82,7 @@ const SafeAccountSetup = () => {
           to: deploymentTransaction.to,
           value: BigInt(deploymentTransaction.value || 0),
           data: deploymentTransaction.data,
-          chain,
+          chain
         });
 
         console.log("Transaction Hash:", transactionHash);
@@ -103,7 +103,7 @@ const SafeAccountSetup = () => {
   };
 
   //reinitiate a safe using the docs on uniswap
-  // working .... 
+  // working ....
   // multisig (one acting as ai agent and another acts as human signer method)
 
   const doTransaction = async (currentProtocolKit) => {
@@ -114,7 +114,7 @@ const SafeAccountSetup = () => {
         "https://eth-sepolia.g.alchemy.com/v2/qf8pc1s5D85eDw9E_r_Ck45C6WoRQqkL",
       signer:
         "1f6496fb9522c1fbb822222eb59e4db2a6165d8bd99f0307fd138797996999a2", //wallet 2 private key
-      safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d", // safe address deployed for wallet 2 and the respective signer is above
+      safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d" // safe address deployed for wallet 2 and the respective signer is above
     });
 
     const tx = await preExistingSafe.createTransaction({
@@ -122,12 +122,12 @@ const SafeAccountSetup = () => {
         {
           to: "0x0000000000000000000000000000000000000000",
           data: "0x",
-          value: "0",
-        },
-      ],
+          value: "0"
+        }
+      ]
     });
 
-    console.log(tx,'tx')
+    console.log(tx, "tx");
     // Every transaction has a Safe (Smart Account) Transaction Hash different than the final transaction hash
     const safeTxHash = await preExistingSafe.getTransactionHash(tx);
     console.log(safeTxHash, "safeTxHash");
@@ -135,17 +135,16 @@ const SafeAccountSetup = () => {
     const signature = await preExistingSafe.signHash(safeTxHash);
     console.log(signature, "signature");
     const apiKit = new SafeApiKit({
-      chainId: 11155111n,
+      chainId: 11155111n
     });
 
-    
     try {
       const agent_transaction = await apiKit.proposeTransaction({
-          safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d",
-          safeTransactionData: tx.data,
-          safeTxHash,
-          senderSignature: signature.data,
-          senderAddress: human_signer_wallet2,
+        safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d",
+        safeTransactionData: tx.data,
+        safeTxHash,
+        senderSignature: signature.data,
+        senderAddress: human_signer_wallet2
       });
       console.log("Proposing transaction with:", {
         safeAddress: "0x06b2EC9126E0C67F2399B88539F99dd009b47B3d",
@@ -153,18 +152,16 @@ const SafeAccountSetup = () => {
         safeTxHash,
         senderSignature: signature.data,
         senderAddress: human_signer_wallet2
-    });
+      });
       console.log("Agent Transaction:", agent_transaction);
-  } catch (error) {
+    } catch (error) {
       console.error("Error in proposeTransaction:", error);
       // Log the actual response if it exists
       if (error.response) {
-          console.error("Response data:", error.response.data);
+        console.error("Response data:", error.response.data);
       }
-  }
+    }
   };
-
-
 
   const deploySafe_Agent = async () => {
     try {
@@ -182,9 +179,9 @@ const SafeAccountSetup = () => {
       const human_signer1 = "0xbb7462adA69561Ff596322A2f9595c28E47FD6aa"; //deployed safe address of wallet1
       const human_signer2 = "0xC75BAbFCe9E6bcB5f72D2A6031bdc41c38b9426a";
       const safeAccountConfig = {
-        owners: [account, human_signer1,human_signer2], // pass your owners here associated with the signer
+        owners: [account, human_signer1, human_signer2], // pass your owners here associated with the signer
         // after deploying a safe account, the signer acts as your private key
-        threshold: 2,
+        threshold: 2
       };
 
       console.log("Deploying Safe with Config:", safeAccountConfig);
@@ -192,7 +189,7 @@ const SafeAccountSetup = () => {
       let protocolKitInstance = await Safe.init({
         provider: chain.rpcUrls.default.http[0],
         signer,
-        predictedSafe: { safeAccountConfig },
+        predictedSafe: { safeAccountConfig }
       });
 
       const safeAddr = await protocolKitInstance.getAddress();
@@ -204,7 +201,7 @@ const SafeAccountSetup = () => {
       if (isDeployed) {
         console.log("Safe already deployed, connecting...");
         protocolKitInstance = await protocolKitInstance.connect({
-          agentSafeAddress,
+          agentSafeAddress
         });
 
         console.log(protocolKitInstance, "protocolKitInstance");
@@ -235,7 +232,7 @@ const SafeAccountSetup = () => {
           to: deploymentTransaction.to,
           value: BigInt(deploymentTransaction.value || 0),
           data: deploymentTransaction.data,
-          chain,
+          chain
         });
 
         console.log("Transaction Hash:", transactionHash);
@@ -260,9 +257,9 @@ const SafeAccountSetup = () => {
           {
             to: "0x0000000000000000000000000000000000000000",
             data: "0x",
-            value: "0",
-          },
-        ],
+            value: "0"
+          }
+        ]
       });
 
       // Every transaction has a Safe (Smart Account) Transaction Hash different than the final transaction hash
@@ -271,7 +268,7 @@ const SafeAccountSetup = () => {
       const signature = await protocolKit.signHash(safeTxHash);
 
       const apiKit = new SafeApiKit({
-        chainId: 11155111n,
+        chainId: 11155111n
       });
 
       // Now the transaction with the signature is sent to the Transaction Service with the Api Kit:
@@ -280,7 +277,7 @@ const SafeAccountSetup = () => {
         safeTransactionData: tx.data,
         safeTxHash,
         senderSignature: signature.data,
-        senderAddress: account,
+        senderAddress: account
       });
 
       console.log("Agent Transaction:", agent_transaction);

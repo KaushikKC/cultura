@@ -11,36 +11,41 @@ import Dashboard from "./pages/Dashboard";
 import GenerateMeme from "./pages/GenerateMeme";
 import MemeHistory from "./pages/MemeHistory";
 import { SafeProvider } from "./components/context/SafeContext";
+import MarketPlace from "./pages/MarketPlace";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Wallet />,
+    element: <Wallet />
   },
   {
     path: "/home",
-    element: <App />,
+    element: <App />
   },
   {
     path: "/safe",
-    element: <SafeAccountSetup />,
+    element: <SafeAccountSetup />
   },
   {
     path: "/landingpage",
-    element: <LandingPage />,
+    element: <LandingPage />
   },
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: <Dashboard />
   },
   {
     path: "/meme",
-    element: <GenerateMeme />,
+    element: <GenerateMeme />
   },
   {
     path: "/history",
-    element: <MemeHistory />,
+    element: <MemeHistory />
   },
+  {
+    path: "/marketplace",
+    element: <MarketPlace />
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
