@@ -78,25 +78,26 @@ function Dashboard() {
         prompt: `Create a high-quality, funny meme-style image based on the topic: "${topic}". 
   The image should be visually appealing, feature expressive characters, and include relevant elements that enhance the humor. 
   Ensure the meme is easily understandable, relatable, and follows a modern meme format.`,
+        response_format: "b64_json",
       });
 
-      const openAiImageUrl = image.data[0].url;
+      const openAiImageUrl = image.data[0].b64_json;
       console.log("Image URL:", openAiImageUrl);
 
-      // Fetch image using our enhanced fetchImageData function which handles proxies and fallbacks
-      let imageFile;
-      try {
-        imageFile = await fetchImageData(openAiImageUrl);
-        console.log("Successfully fetched image file:", imageFile);
-      } catch (error) {
-        console.error("Failed to fetch image:", error);
-        setError("Failed to process image. Please try again.");
-        setLoading(false);
-        return;
-      }
+      // // Fetch image using our enhanced fetchImageData function which handles proxies and fallbacks
+      // let imageFile;
+      // try {
+      //   imageFile = await fetchImageData(openAiImageUrl);
+      //   console.log("Successfully fetched image file:", imageFile);
+      // } catch (error) {
+      //   console.error("Failed to fetch image:", error);
+      //   setError("Failed to process image. Please try again.");
+      //   setLoading(false);
+      //   return;
+      // }
 
       // Upload to IPFS
-      const { ipfsImageUrl } = await uploadImageToIPFS(imageFile);
+      const { ipfsImageUrl } = await uploadImageToIPFS(openAiImageUrl);
       console.log("IPFS Image URL:", ipfsImageUrl);
 
       const ipMetadata = client.ipAsset.generateIpMetadata({
@@ -177,8 +178,8 @@ function Dashboard() {
 
       console.log(response, "response from mintAndRegisterIpAssetWithPilTerms");
       console.log(`
-        Token ID: ${response.tokenId}, 
-        IPA ID: ${response.ipId}, 
+        Token ID: ${response.tokenId},
+        IPA ID: ${response.ipId},
         License Terms ID: ${response.licenseTermsIds}
       `);
       setLoading(false);
@@ -187,7 +188,7 @@ function Dashboard() {
       navigate("/meme", {
         state: {
           topic: topic,
-          imageUrl: image.data[0].url,
+          imageUrl: ipfsImageUrl,
         },
       });
     } catch (error) {

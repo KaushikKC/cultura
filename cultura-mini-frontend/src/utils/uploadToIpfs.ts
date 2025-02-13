@@ -4,6 +4,10 @@ const pinata = new PinataSDK({
   pinataJwt: process.env.REACT_APP_PINATA_JWT,
 });
 
+interface IpfsUploadResponse {
+  ipfsImageUrl: string;
+}
+
 // Function to fetch image data from URL and convert to File object
 export async function fetchImageData(url) {
   // List of CORS proxies to try
@@ -119,10 +123,32 @@ async function fetchImageDataWithCanvas(url) {
 }
 
 // Function to upload image to IPFS
-export async function uploadImageToIPFS(imageFile) {
+export async function uploadImageToIPFS(
+  imageInput: string | File
+): Promise<IpfsUploadResponse> {
   try {
-    const { IpfsHash } = await pinata.upload.file(imageFile);
-    return `https://ipfs.io/ipfs/${IpfsHash}`;
+    let fileToUpload: File;
+
+    if (typeof imageInput === "string") {
+      // Handle base64 string
+      const base64Content = imageInput.replace(/^data:image\/\w+;base64,/, "");
+      const byteCharacters = atob(base64Content);
+      const byteArrays = new Uint8Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArrays[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const blob = new Blob([byteArrays], { type: "image/png" });
+      fileToUpload = new File([blob], `image-${Date.now()}.png`, {
+        type: "image/png",
+      });
+    } else {
+      fileToUpload = imageInput;
+    }
+
+    const { IpfsHash } = await pinata.upload.file(fileToUpload);
+    return { ipfsImageUrl: `https://ipfs.io/ipfs/${IpfsHash}` };
   } catch (error) {
     console.error("Error uploading image to IPFS:", error);
     throw error;
