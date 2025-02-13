@@ -1,5 +1,5 @@
-// MemeCard.js
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const MemeCard = ({
   topic,
@@ -11,13 +11,19 @@ const MemeCard = ({
   tokenUri,
 }) => {
   const [showPopup, setShowPopup] = useState(false);
-  console.log("Rendering MemeCard:", { topic, imageUrl, ipId, tokenId });
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/meme/${ipId}`);
+  };
 
   return (
     <div
-      className="relative w-[400px] h-[550px] bg-[#D1B29A] p-4 rounded-xl border-2 border-[#3E2723] overflow-hidden"
+      className="relative w-[400px] h-[550px] bg-[#D1B29A] p-4 rounded-xl border-2 border-[#3E2723] overflow-hidden cursor-pointer"
       style={{ boxShadow: "0.4rem 0.4rem #3E2723" }}
+      onClick={handleCardClick}
     >
+      {/* Rest of the MemeCard component remains the same */}
       {isDerived && (
         <div className="absolute top-2 left-2 bg-[#3E2723] text-white px-3 py-1 text-xs font-bold uppercase rounded-md shadow-md">
           Derived
@@ -27,10 +33,14 @@ const MemeCard = ({
       <img src={imageUrl} className="p-5" alt={topic} />
       <div className="flex flex-col gap-2 h-full text-xl">
         <p className="text-[#3E2723] font-gloock text-2xl font-medium">
-          {topic}
+          {topic.replace("1315: ", "")}
         </p>
         <div className="flex justify-center space-x-5">
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle X share
+            }}
             className="relative text-[#3E2723] inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-white hover:text-white transition-colors duration-500
             before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-[#3E2723] before:opacity-0 before:-z-10 before:transition-all before:duration-500
             hover:before:right-0 hover:before:opacity-100
@@ -39,6 +49,10 @@ const MemeCard = ({
             <span className="inline-block skew-x-[21deg]">Share on X</span>
           </button>
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle Farcaster share
+            }}
             className="relative text-[#3E2723] inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-white hover:text-white transition-colors duration-500
             before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-[#3E2723] before:opacity-0 before:-z-10 before:transition-all before:duration-500
             hover:before:right-0 hover:before:opacity-100
@@ -52,7 +66,10 @@ const MemeCard = ({
 
         <div className="flex justify-center">
           <button
-            onClick={() => isMarketplace && setShowPopup(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              isMarketplace && setShowPopup(true);
+            }}
             className="cursor-pointer font-semibold overflow-hidden relative z-100 border border-[#3E2723] group px-6 py-1 my-2"
           >
             <span className="relative z-10 text-[#3E2723] group-hover:text-white text-xl duration-500">
