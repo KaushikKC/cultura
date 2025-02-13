@@ -1,22 +1,30 @@
+// MemeCard.js
 import React, { useState } from "react";
 
-const MemeCard = ({ topic, imageUrl, isDerived, isMarketplace }) => {
+const MemeCard = ({
+  topic,
+  imageUrl,
+  isDerived,
+  isMarketplace,
+  ipId,
+  tokenId,
+  tokenUri,
+}) => {
   const [showPopup, setShowPopup] = useState(false);
-  console.log(imageUrl);
+  console.log("Rendering MemeCard:", { topic, imageUrl, ipId, tokenId });
 
   return (
     <div
       className="relative w-[400px] h-[550px] bg-[#D1B29A] p-4 rounded-xl border-2 border-[#3E2723] overflow-hidden"
       style={{ boxShadow: "0.4rem 0.4rem #3E2723" }}
     >
-      {/* Derived Tag */}
       {isDerived && (
         <div className="absolute top-2 left-2 bg-[#3E2723] text-white px-3 py-1 text-xs font-bold uppercase rounded-md shadow-md">
           Derived
         </div>
       )}
 
-      <img src={imageUrl} className="p-5" alt="" />
+      <img src={imageUrl} className="p-5" alt={topic} />
       <div className="flex flex-col gap-2 h-full text-xl">
         <p className="text-[#3E2723] font-gloock text-2xl font-medium">
           {topic}
@@ -56,11 +64,25 @@ const MemeCard = ({ topic, imageUrl, isDerived, isMarketplace }) => {
         </div>
       </div>
 
-      {/* License Popup Modal  */}
       {showPopup && isMarketplace && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 md:p-8 w-[90%] md:w-[400px] rounded-lg shadow-xl text-center relative">
-            <h2 className="text-2xl font-bold text-[#3E2723]">License Meme</h2>
+          <div className="bg-white p-6 md:p-8 w-[90%] md:w-[500px] rounded-lg shadow-xl text-center relative">
+            <h2 className="text-2xl font-bold text-[#3E2723] mb-4">
+              License Meme
+            </h2>
+
+            <div className="text-left mb-4 text-gray-700">
+              <p className="mb-2">
+                <strong>IP ID:</strong> {ipId}
+              </p>
+              <p className="mb-2">
+                <strong>Token ID:</strong> {tokenId}
+              </p>
+              <p className="mb-2 break-all">
+                <strong>Token URI:</strong> {tokenUri}
+              </p>
+            </div>
+
             <p className="mt-3 text-gray-700">
               By licensing this meme, you agree to the platform's licensing
               terms and conditions.
@@ -70,9 +92,9 @@ const MemeCard = ({ topic, imageUrl, isDerived, isMarketplace }) => {
               <button
                 onClick={() => setShowPopup(false)}
                 className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-red-500 hover:bg-red-600 transition-colors duration-500
-    before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-red-700 before:opacity-0 before:-z-10 before:transition-all before:duration-500
-    hover:before:right-0 hover:before:opacity-100
-    -skew-x-[21deg] group"
+                before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-red-700 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                hover:before:right-0 hover:before:opacity-100
+                -skew-x-[21deg] group"
               >
                 <span className="inline-block skew-x-[21deg]">Cancel</span>
               </button>
@@ -82,9 +104,9 @@ const MemeCard = ({ topic, imageUrl, isDerived, isMarketplace }) => {
                   alert("Meme Licensed!");
                 }}
                 className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
-    before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
-    hover:before:right-0 hover:before:opacity-100
-    -skew-x-[21deg] group"
+                before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                hover:before:right-0 hover:before:opacity-100
+                -skew-x-[21deg] group"
               >
                 <span className="inline-block skew-x-[21deg]">Confirm</span>
               </button>

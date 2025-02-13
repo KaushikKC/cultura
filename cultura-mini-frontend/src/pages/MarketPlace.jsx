@@ -10,34 +10,47 @@ function MarketPlace() {
   useEffect(() => {
     const fetchMemes = async () => {
       try {
-        const url =
-          "https://api.storyapis.com/api/v3/collections/0x1C7AA3312f8e4dBA6672fAb191AbC007FE01D651";
+        const url = "https://api.storyapis.com/api/v3/assets";
         const options = {
-          method: "GET",
+          method: "POST",
           headers: {
             accept: "application/json",
             "X-Api-Key": "MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U",
             "X-Chain": "story-aeneid",
+            "content-type": "application/json",
           },
+          body: JSON.stringify({
+            options: {
+              where: {
+                tokenContract: "0x1C7AA3312f8e4dBA6672fAb191AbC007FE01D651",
+              },
+            },
+          }),
         };
 
+        console.log("Fetching assets...");
         const response = await fetch(url, options);
         const json = await response.json();
+        console.log("API Response:", json);
 
-        // Transform the API response into the format expected by MemeCardd
-        const transformedMemes = [
-          {
-            id: json.data.id,
-            topic: `Meme ${json.data.assetCount}`, // topic and imageUrl should be coming from individual meme IPid with another api call , needed to be configured
-            imageUrl: "/images/meme1.jpg", // You'll need to get the actual image URL from your API
+        if (json.data) {
+          const transformedMemes = json.data.map((item) => ({
+            id: item.id,
+            ipId: item.ipId,
+            topic: item.nftMetadata?.name || "Unnamed Meme",
+            imageUrl: item.nftMetadata?.imageUrl || "/images/meme1.jpg",
+            tokenId: item.nftMetadata?.tokenId,
+            tokenUri: item.nftMetadata?.tokenUri,
             isDerived: false,
             isMarketplace: true,
-          },
-        ];
+          }));
 
-        setMemes(transformedMemes);
+          console.log("Transformed memes:", transformedMemes);
+          setMemes(transformedMemes);
+        }
         setLoading(false);
       } catch (err) {
+        console.error("Error fetching data:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -51,7 +64,10 @@ function MarketPlace() {
       <div className="bg-[#412E2A] min-h-screen">
         <Navbar />
         <div className="bg-[#D9D9D9] text-[#3E2723] min-h-screen flex items-center justify-center">
-          Loading...
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E2723]"></div>
+            <p className="mt-4">Loading memes...</p>
+          </div>
         </div>
       </div>
     );
@@ -62,7 +78,13 @@ function MarketPlace() {
       <div className="bg-[#412E2A] min-h-screen">
         <Navbar />
         <div className="bg-[#D9D9D9] text-[#3E2723] min-h-screen flex items-center justify-center">
-          Error: {error}
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+            role="alert"
+          >
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
         </div>
       </div>
     );
@@ -82,6 +104,7 @@ function MarketPlace() {
             <span>Your Feed</span>
           </div>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {memes.map((meme) => (
             <MemeCard
@@ -90,6 +113,9 @@ function MarketPlace() {
               imageUrl={meme.imageUrl}
               isDerived={meme.isDerived}
               isMarketplace={meme.isMarketplace}
+              ipId={meme.ipId}
+              tokenId={meme.tokenId}
+              tokenUri={meme.tokenUri}
             />
           ))}
         </div>
