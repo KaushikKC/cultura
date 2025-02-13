@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { client } from "./wallet/thirdweb/client";
 import { ConnectButton } from "thirdweb/react";
 import { useActiveAccount } from "thirdweb/react";
@@ -8,6 +8,9 @@ import { useActiveAccount } from "thirdweb/react";
 function Navbar() {
   const [showPopup, setShowPopup] = useState(false);
   const account = useActiveAccount();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
   // const { safeAddress, deploySafe, loading } = useSafe();
 
   // useEffect(
@@ -31,13 +34,13 @@ function Navbar() {
         </Link>
         <div className="flex justify-end">
           <div className="font-poppins space-x-20 text-md flex items-center">
-            <Link to="/dashboard" className="">
+          <Link to="/dashboard" className={isActive("/dashboard") ? "font-bold text-lg" : ""}>
               Trending
             </Link>
-            <Link to="/marketplace" className="">
+            <Link to="/marketplace" className={isActive("/marketplace") ? "font-bold text-lg" : ""}>
               Explore
             </Link>
-            <Link to="/history" className="">
+            <Link to="/history" className={isActive("/history") ? "font-bold text-lg" : ""}>
               My Memes
             </Link>
             <div>
