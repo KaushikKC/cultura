@@ -24,7 +24,7 @@ function MarketPlace() {
         const response = await fetch(url, options);
         const json = await response.json();
 
-        // Transform the API response into the format expected by MemeCard
+        // Transform the API response into the format expected by MemeCardd
         const transformedMemes = [
           {
             id: json.data.id,
