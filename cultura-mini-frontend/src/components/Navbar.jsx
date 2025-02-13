@@ -59,12 +59,34 @@ function Navbar() {
                       This is a sample popup.
                     </p>
 
-                    <button
-                      onClick={() => setShowPopup(false)}
-                      className="mt-5 px-5 py-2 bg-[#3E2723] text-white rounded-md hover:bg-[#5a3d31] transition-all duration-300"
-                    >
-                      Close
-                    </button>
+                    <div className="flex justify-center space-x-5 mt-5">
+                      <button
+                        onClick={() => setShowPopup(false)}
+                        className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-red-500 hover:bg-red-600 transition-colors duration-500
+    before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-red-700 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+    hover:before:right-0 hover:before:opacity-100
+    -skew-x-[21deg] group"
+                      >
+                        <span className="inline-block skew-x-[21deg]">
+                          Cancel
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowPopup(false);
+                          alert("Meme Licensed!");
+                        }}
+                        className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
+    before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+    hover:before:right-0 hover:before:opacity-100
+    -skew-x-[21deg] group"
+                      >
+                        <span className="inline-block skew-x-[21deg]">
+                          License
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>}
             </div>
