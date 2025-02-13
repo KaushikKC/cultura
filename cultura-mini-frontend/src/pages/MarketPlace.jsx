@@ -37,7 +37,11 @@ function MarketPlace() {
           const transformedMemes = json.data.map((item) => ({
             id: item.id,
             ipId: item.ipId,
-            topic: item.nftMetadata?.name || "Unnamed Meme",
+            // topic: item.nftMetadata?.name || "Unnamed Meme",
+            topic: (item.nftMetadata?.name || "Unnamed Meme").replace(
+              "1315: ",
+              ""
+            ),
             imageUrl: item.nftMetadata?.imageUrl || "/images/meme1.jpg",
             tokenId: item.nftMetadata?.tokenId,
             tokenUri: item.nftMetadata?.tokenUri,
