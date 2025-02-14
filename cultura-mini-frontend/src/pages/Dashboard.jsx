@@ -10,12 +10,9 @@ import { uploadImageToIPFS, uploadJSONToIPFS } from "../utils/uploadToIpfs.ts";
 import { createHash } from "crypto";
 import { useActiveAccount } from "thirdweb/react";
 import { PIL_TYPE } from "@story-protocol/core-sdk";
-import { LicenseTerms } from "@story-protocol/core-sdk";
+
 import { zeroAddress } from "viem";
 import { zeroHash } from "viem";
-import { fetchImageData } from "../utils/uploadToIpfs.ts";
-import { fetchThroughProxy } from "../utils/uploadToIpfs.ts";
-// import { useSafe } from "../components/context/SafeContext.js";
 
 // const API_BASE_URL = "http://localhost:3001";
 
