@@ -36,26 +36,31 @@ const MemeCardProfile = ({
           </div>
         )}
 
-        <img src={imageUrl} className="p-5" alt={topic} />
-        <div className="flex flex-col gap-2 h-full text-xl">
-          <p className="text-[#3E2723] font-gloock text-2xl font-medium">
-            {topic.replace("1315: ", "")}
-          </p>
+        <div className="flex flex-col h-full">
+          <img src={imageUrl} className="p-5 flex-shrink-0" alt={topic} />
+          <div className="flex flex-col flex-grow justify-between">
+            <p className="text-[#3E2723] font-gloock text-2xl font-medium">
+              {topic.replace("1315: ", "")}
+            </p>
 
-          <div className="flex justify-center mt-auto">
-            <button
-              className="mt-6 relative text-[#3E2723] inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-white hover:text-white transition-colors duration-500
-                  before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-[#3E2723] before:opacity-0 before:-z-10 before:transition-all before:duration-500
-                  hover:before:right-0 hover:before:opacity-100
-                  -skew-x-[21deg] group"
-              onClick={handleClaimRewards}
-            >
-              <span className="inline-block skew-x-[21deg]">Claim Rewards</span>
-            </button>
+            <div className="flex justify-center pb-4">
+              <button
+                className="relative text-[#3E2723] inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-white hover:text-white transition-colors duration-500
+                    before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-[#3E2723] before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                    hover:before:right-0 hover:before:opacity-100
+                    -skew-x-[21deg] group"
+                onClick={handleClaimRewards}
+              >
+                <span className="inline-block skew-x-[21deg]">
+                  Claim Rewards
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Rest of the component remains the same */}
       {showRewardDetails && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"

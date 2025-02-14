@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import { FaWallet } from "react-icons/fa";
 import Footer from "../components/Footer";
 import { useActiveAccount } from "thirdweb/react";
-import MemeGrid from "../components/ProfileMemeGrid";
+import ProfileMemeGrid from "../components/ProfileMemeGrid";
 
 function Profile() {
   const address = useActiveAccount();
@@ -50,7 +50,7 @@ function Profile() {
               </h2>
               <p className="text-gray-600 mt-2">Here are all your meme NFTs</p>
             </div>
-            <MemeGrid address={address.address} />
+            <ProfileMemeGrid address={address.address} />
           </div>
         )}
       </div>

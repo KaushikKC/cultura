@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MemeCardProfile from "./ProfileMemeCard";
 
-const MemeGrid = ({ isProfilePage = false }) => {
+const ProfileMemeGrid = (address) => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,7 +69,6 @@ const MemeGrid = ({ isProfilePage = false }) => {
             topic={meme.nftMetadata.name}
             imageUrl={meme.nftMetadata.imageUrl}
             isDerived={meme.parentCount > 0}
-            isMarketplace={!isProfilePage}
             ipId={meme.ipId}
             tokenId={meme.nftMetadata.tokenId}
             tokenUri={meme.nftMetadata.tokenUri}
@@ -80,4 +79,4 @@ const MemeGrid = ({ isProfilePage = false }) => {
   );
 };
 
-export default MemeGrid;
+export default ProfileMemeGrid;
