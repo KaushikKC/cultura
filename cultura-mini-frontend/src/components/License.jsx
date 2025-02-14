@@ -7,10 +7,11 @@ import { WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
 import { createHash } from "crypto";
 const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
   const account = useActiveAccount();
-  const [derivativeIPId, setDerivativeIPId] = useState();
+  const [status, setStatus] = useState("Creating derivative...");
 
   const createLicenseandDerivative = async () => {
     try {
+      setStatus("Initializing derivative creation...");
       const derivData = {
         parentIpIds: [parentIpId],
         licenseTermsIds: [95],
@@ -18,6 +19,8 @@ const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
         maxRts: 100_000_000,
         maxRevenueShare: 100,
       };
+
+      setStatus("Generating metadata...");
 
       const ipMetadata = client.ipAsset.generateIpMetadata({
         title: `Derivative Meme from parent IP:${parentIpId}`,
@@ -66,6 +69,8 @@ const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
         .update(JSON.stringify(nftMetadata))
         .digest("hex");
 
+      setStatus("Creating derivative...");
+
       const response = await client.ipAsset.mintAndRegisterIpAndMakeDerivative({
         spgNftContract: nftCollectionAddress,
         derivData,
@@ -79,31 +84,45 @@ const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
         txOptions: { waitForTransaction: true },
       });
 
-      console.log(
-        `Completed at transaction hash ${response.txHash}, IPA ID: ${response.ipId}, Token ID: ${response.tokenId}`
-      );
-      setDerivativeIPId(response.ipId);
-      await payIP(response.ipId);
-      onComplete();
-    } catch (error) {
-      console.error("Error creating derivative:", error);
-    }
-  };
-
-  const payIP = async (derivativeId) => {
-    try {
+      setStatus("Processing royalty payment...");
       const payRoyalty = await client.royalty.payRoyaltyOnBehalf({
         receiverIpId: parentIpId,
-        payerIpId: derivativeId,
+        payerIpId: response.ipId,
         token: WIP_TOKEN_ADDRESS,
         amount: 1,
         txOptions: { waitForTransaction: true },
       });
-      console.log(`Paid royalty at transaction hash ${payRoyalty.txHash}`);
+
+      onComplete({
+        derivativeTxHash: response.txHash,
+        ipId: response.ipId,
+        tokenId: response.tokenId,
+        royaltyTxHash: payRoyalty.txHash,
+      });
+
+      console.log(
+        `Completed at transaction hash ${response.txHash}, IPA ID: ${response.ipId}, Token ID: ${response.tokenId}`
+      );
     } catch (error) {
-      console.error("Error paying royalty:", error);
+      console.error("Error creating derivative:", error);
+      setStatus("Error occurred. Please try again.");
     }
   };
+
+  // const payIP = async (derivativeId) => {
+  //   try {
+  //     const payRoyalty = await client.royalty.payRoyaltyOnBehalf({
+  //       receiverIpId: parentIpId,
+  //       payerIpId: derivativeId,
+  //       token: WIP_TOKEN_ADDRESS,
+  //       amount: 1,
+  //       txOptions: { waitForTransaction: true },
+  //     });
+  //     console.log(`Paid royalty at transaction hash ${payRoyalty.txHash}`);
+  //   } catch (error) {
+  //     console.error("Error paying royalty:", error);
+  //   }
+  // };
 
   useEffect(() => {
     createLicenseandDerivative();
@@ -111,8 +130,9 @@ const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl">
-        <p className="text-lg">Processing your derivative license...</p>
+      <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3E2723] mx-auto mb-4"></div>
+        <p className="text-lg text-[#3E2723]">{status}</p>
       </div>
     </div>
   );
