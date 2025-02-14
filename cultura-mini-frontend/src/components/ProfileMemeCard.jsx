@@ -94,16 +94,20 @@ const MemeCardProfile = ({
       });
 
       try {
+        const royaltyVaultAddress = await client.royalty.getRoyaltyVaultAddress(
+          ipId
+        );
+        console.log("Royalty Vault Address:", royaltyVaultAddress);
         const claimRevenue = await client.royalty.claimAllRevenue({
           ancestorIpId: ipId,
-          // Use the wallet address instead of ipId for claimer
-          claimer: window.ethereum.selectedAddress,
+          claimer: ipId,
           currencyTokens: [WIP_TOKEN_ADDRESS],
           childIpIds: childIpIds,
+
           royaltyPolicies: ["0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E"],
           claimOptions: {
-            autoTransferAllClaimedTokensFromIp: true,
-            autoUnwrapIpTokens: true,
+            autoTransferAllClaimedTokensFromIp: false,
+            autoUnwrapIpTokens: false,
           },
         });
 

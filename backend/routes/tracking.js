@@ -38,6 +38,7 @@ const UserTrackingSchema = new mongoose.Schema({
     default: 0,
   },
 });
+const UserTracking = mongoose.model("UserTracking", UserTrackingSchema);
 
 const UserAISchema = new mongoose.Schema({
   userAddress: {
@@ -198,12 +199,12 @@ router.get("/share-stats/:ipId", async (req, res) => {
 // POST endpoint to add/update user's IPIDs
 router.post("/user-tracking", async (req, res) => {
   try {
-    const { userAddress, ipId } = req.body;
+    const { userAddress, ipIds } = req.body; // Note: changed ipId to ipIds
 
-    if (!userAddress || !ipId) {
+    if (!userAddress || !Array.isArray(ipIds)) {
       return res.status(400).json({
         success: false,
-        error: "userAddress and ipId are required",
+        error: "userAddress and ipIds array are required",
       });
     }
 
@@ -211,10 +212,12 @@ router.post("/user-tracking", async (req, res) => {
     const userTrack = await UserTracking.findOne({ userAddress });
 
     if (userTrack) {
-      // Check if ipId already exists
-      if (!userTrack.ipIds.includes(ipId)) {
-        userTrack.ipIds.push(ipId);
-        userTrack.totalInteractions += 1;
+      // Filter out any ipIds that already exist
+      const newIpIds = ipIds.filter((ipId) => !userTrack.ipIds.includes(ipId));
+
+      if (newIpIds.length > 0) {
+        userTrack.ipIds.push(...newIpIds);
+        userTrack.totalInteractions += newIpIds.length;
         userTrack.lastUpdated = new Date();
         await userTrack.save();
       }
@@ -222,8 +225,8 @@ router.post("/user-tracking", async (req, res) => {
       // Create new tracking record
       await UserTracking.create({
         userAddress,
-        ipIds: [ipId],
-        totalInteractions: 1,
+        ipIds: ipIds,
+        totalInteractions: ipIds.length,
       });
     }
 
