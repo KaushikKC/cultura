@@ -3,14 +3,17 @@ import { FaFacebook, FaTwitter, FaInstagram, FaGithub } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#412E2A] text-gray-300 py-10">
+    <footer className="bg-[#412E2A] text-[#d9d9d9] py-10">
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
           {/* Logo & About */}
           <div>
             <h2 className="text-2xl text-white">Cultura</h2>
             <p className="mt-2 text-sm text-gray-400">
-              Elevating experiences through design and innovation.
+              Cultura is an innovative platform that leverages AI to curate
+              trending cultural topics, create engaging meme content, and store
+              it on the blockchain, ensuring secure and immutable provenance.
+              Explore and interact with the future of digital culture.{" "}
             </p>
           </div>
 

@@ -10,7 +10,7 @@ function Navbar() {
   const account = useActiveAccount();
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = path => location.pathname === path;
   // const { safeAddress, deploySafe, loading } = useSafe();
 
   // useEffect(
@@ -34,14 +34,29 @@ function Navbar() {
         </Link>
         <div className="flex justify-end">
           <div className="font-poppins space-x-20 text-md flex items-center">
-          <Link to="/dashboard" className={isActive("/dashboard") ? "font-bold text-lg" : ""}>
+            <Link
+              to="/dashboard"
+              className={isActive("/dashboard") ? "font-bold text-lg" : ""}
+            >
               Trending
             </Link>
-            <Link to="/marketplace" className={isActive("/marketplace") ? "font-bold text-lg" : ""}>
+            <Link
+              to="/marketplace"
+              className={isActive("/marketplace") ? "font-bold text-lg" : ""}
+            >
               Explore
             </Link>
-            <Link to="/history" className={isActive("/history") ? "font-bold text-lg" : ""}>
+            <Link
+              to="/history"
+              className={isActive("/history") ? "font-bold text-lg" : ""}
+            >
               My Memes
+            </Link>
+            <Link
+              to="/profile"
+              className={isActive("/profile") ? "font-bold text-lg" : ""}
+            >
+              Profile
             </Link>
             <div>
               <button

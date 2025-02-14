@@ -13,44 +13,49 @@ import MemeHistory from "./pages/MemeHistory";
 import { SafeProvider } from "./components/context/SafeContext";
 import MarketPlace from "./pages/MarketPlace";
 import MemeCardIndividual from "./pages/IndividualMeme";
+import Profile from "./pages/Profile";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Wallet />,
+    element: <Wallet />
   },
   {
     path: "/home",
-    element: <App />,
+    element: <App />
   },
   {
     path: "/safe",
-    element: <SafeAccountSetup />,
+    element: <SafeAccountSetup />
   },
   {
     path: "/landingpage",
-    element: <LandingPage />,
+    element: <LandingPage />
   },
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: <Dashboard />
   },
   {
     path: "/meme",
-    element: <GenerateMeme />,
+    element: <GenerateMeme />
   },
   {
     path: "/history",
-    element: <MemeHistory />,
+    element: <MemeHistory />
   },
   {
     path: "/marketplace",
-    element: <MarketPlace />,
+    element: <MarketPlace />
+  },
+  {
+    path: "/profile",
+    element: <Profile />
   },
   {
     path: "/meme/:ipId", // Add the new route with parameter
-    element: <MemeCardIndividual />,
-  },
+    element: <MemeCardIndividual />
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
