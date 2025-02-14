@@ -1,13 +1,43 @@
 import React, { useState, useEffect } from "react";
 import MemeCardProfile from "./ProfileMemeCard";
 
-const ProfileMemeGrid = (address) => {
+const ProfileMemeGrid = ({ address }) => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ipIds, setIpIds] = useState([]);
 
+  // First fetch the user's tracking data to get ipIds
+  useEffect(() => {
+    const fetchUserTracking = async () => {
+      try {
+        const trackingResponse = await fetch(
+          `https://cultura-e6o8.vercel.app/api/user-tracking/${address}`
+        );
+        const trackingData = await trackingResponse.json();
+        console.log(trackingData, "trackingData");
+
+        if (trackingData.success && trackingData.data.ipIds) {
+          setIpIds(trackingData.data.ipIds);
+        } else {
+          throw new Error("Failed to fetch user tracking data");
+        }
+      } catch (err) {
+        setError("Failed to fetch user tracking data: " + err.message);
+        setLoading(false);
+      }
+    };
+
+    if (address) {
+      fetchUserTracking();
+    }
+  }, [address]);
+
+  // Then fetch the memes using the obtained ipIds
   useEffect(() => {
     const fetchMemes = async () => {
+      if (!ipIds.length) return;
+
       try {
         const url = "https://api.storyapis.com/api/v3/assets";
         const options = {
@@ -23,10 +53,7 @@ const ProfileMemeGrid = (address) => {
               where: {
                 tokenContract: "0x1C7AA3312f8e4dBA6672fAb191AbC007FE01D651",
               },
-              ipAssetIds: [
-                "0x50F19C3BbDA3892b8EcC334247504C66c0039f9e",
-                "0xb0349BA13fee1DD3F7b7DDa1fa3516916d132366",
-              ],
+              ipAssetIds: ipIds,
             },
           }),
         };
@@ -36,13 +63,13 @@ const ProfileMemeGrid = (address) => {
         setMemes(json.data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError("Failed to fetch memes: " + err.message);
         setLoading(false);
       }
     };
 
     fetchMemes();
-  }, []);
+  }, [ipIds]);
 
   if (loading) {
     return (
