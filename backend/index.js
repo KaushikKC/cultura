@@ -6,6 +6,7 @@ const natural = require("natural");
 const { HfInference } = require("@huggingface/inference");
 const pinataSDK = require("@pinata/sdk");
 const axios = require("axios"); // Add axios for fallback image generation
+const connectDB = require("./config/db");
 
 // Load environment variables
 dotenv.config();
@@ -243,7 +244,15 @@ app.get("/api/history/:userAddress", (req, res) => {
   res.json(userMemes);
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const trackingRoutes = require("./routes/tracking");
+app.use("/api", trackingRoutes);
+
+const startServer = async () => {
+  await connectDB();
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();
