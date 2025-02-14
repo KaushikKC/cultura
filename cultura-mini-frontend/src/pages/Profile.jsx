@@ -32,16 +32,6 @@ function Profile() {
                     "..." +
                     address.address.slice(-4)}
                 </div>
-                <button
-                  className="mt-6 relative text-[#3E2723] inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-white hover:text-white transition-colors duration-500
-                  before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-[#3E2723] before:opacity-0 before:-z-10 before:transition-all before:duration-500
-                  hover:before:right-0 hover:before:opacity-100
-                  -skew-x-[21deg] group"
-                >
-                  <span className="inline-block skew-x-[21deg]">
-                    Claim Rewards
-                  </span>
-                </button>
               </>
             ) : (
               <p className="mt-6 text-lg text-red-600 font-semibold">

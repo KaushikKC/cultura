@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import MemeCard from "./MemeCard";
+import MemeCardProfile from "./ProfileMemeCard";
 
-const MemeGrid = (address) => {
+const MemeGrid = ({ isProfilePage = false }) => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,12 +64,12 @@ const MemeGrid = (address) => {
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
         {memes.map((meme) => (
-          <MemeCard
+          <MemeCardProfile
             key={meme.ipId}
             topic={meme.nftMetadata.name}
             imageUrl={meme.nftMetadata.imageUrl}
             isDerived={meme.parentCount > 0}
-            isMarketplace={true}
+            isMarketplace={!isProfilePage}
             ipId={meme.ipId}
             tokenId={meme.nftMetadata.tokenId}
             tokenUri={meme.nftMetadata.tokenUri}
