@@ -24,7 +24,7 @@ const ProfileMemeGrid = (address) => {
                 tokenContract: "0x1C7AA3312f8e4dBA6672fAb191AbC007FE01D651",
               },
               ipAssetIds: [
-                "0x025eE9a2AC0E8534c12840B30D7aF9cba0cc393B",
+                "0x50F19C3BbDA3892b8EcC334247504C66c0039f9e",
                 "0xb0349BA13fee1DD3F7b7DDa1fa3516916d132366",
               ],
             },

@@ -10,6 +10,9 @@ const MemeCardProfile = ({
   tokenUri,
 }) => {
   const [showRewardDetails, setShowRewardDetails] = useState(false);
+  const [rewardsData, setRewardsData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleCardClick = (e) => {
@@ -18,9 +21,64 @@ const MemeCardProfile = ({
     }
   };
 
+  const fetchRewardsData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const url = "https://api.storyapis.com/api/v3/royalties/payments";
+    const options = {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "X-Api-Key": "MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U",
+        "X-Chain": "story-aeneid",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        options: {
+          where: {
+            receiverIpId: ipId,
+          },
+        },
+      }),
+    };
+
+    try {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      setRewardsData(data);
+      setShowRewardDetails(true);
+    } catch (err) {
+      setError("Failed to fetch rewards data. Please try again later.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleClaimRewards = (e) => {
     e.stopPropagation();
-    setShowRewardDetails(true);
+    fetchRewardsData();
+  };
+
+  // Calculate total rewards
+  const calculateTotalRewards = () => {
+    if (!rewardsData?.data) return 0;
+    return rewardsData.data.reduce(
+      (total, payment) => total + Number(payment.amount),
+      0
+    );
+  };
+
+  // Get the last claim timestamp
+  const getLastClaimTimestamp = () => {
+    if (!rewardsData?.data?.length) return null;
+    const sortedData = [...rewardsData.data].sort(
+      (a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp)
+    );
+    return new Date(
+      Number(sortedData[0].blockTimestamp) * 1000
+    ).toLocaleDateString();
   };
 
   return (
@@ -50,9 +108,10 @@ const MemeCardProfile = ({
                     hover:before:right-0 hover:before:opacity-100
                     -skew-x-[21deg] group"
                 onClick={handleClaimRewards}
+                disabled={isLoading}
               >
                 <span className="inline-block skew-x-[21deg]">
-                  Claim Rewards
+                  {isLoading ? "Loading..." : "Claim Rewards"}
                 </span>
               </button>
             </div>
@@ -60,7 +119,6 @@ const MemeCardProfile = ({
         </div>
       </div>
 
-      {/* Rest of the component remains the same */}
       {showRewardDetails && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -71,17 +129,52 @@ const MemeCardProfile = ({
               Available Rewards
             </h2>
 
-            <div className="text-left mb-4 text-gray-700">
-              <p className="mb-2">
-                <strong>NFT ID:</strong> {tokenId}
-              </p>
-              <p className="mb-2">
-                <strong>Earned Rewards:</strong> 2.5 WIPT
-              </p>
-              <p className="mb-2">
-                <strong>Last Claim:</strong> 30 days ago
-              </p>
-            </div>
+            {error ? (
+              <div className="text-red-500 mb-4">{error}</div>
+            ) : (
+              <div className="text-left mb-4 text-gray-700">
+                <p className="mb-2">
+                  <strong>NFT ID:</strong> {tokenId}
+                </p>
+                <p className="mb-2">
+                  <strong>Total Earned Rewards:</strong>{" "}
+                  {calculateTotalRewards()} WIP
+                </p>
+                <p className="mb-2">
+                  <strong>Last Claim:</strong>{" "}
+                  {getLastClaimTimestamp() || "No claims yet"}
+                </p>
+                <p className="mb-2">
+                  <strong>Number of Transactions:</strong>{" "}
+                  {rewardsData?.data?.length || 0}
+                </p>
+
+                <div className="mt-4">
+                  <strong className="block mb-2">Transaction Details:</strong>
+                  <div className="max-h-40 overflow-y-auto">
+                    {rewardsData?.data?.map((payment, index) => (
+                      <div
+                        key={payment.id}
+                        className="mb-3 p-2 bg-gray-50 rounded"
+                      >
+                        <p className="text-sm">
+                          <strong>Payer IP:</strong> {payment.payerIpId}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Block Number:</strong> {payment.blockNumber}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Token Address:</strong> {payment.token}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Amount:</strong> {payment.amount} WIP
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-center space-x-5 mt-5">
               <button
@@ -91,20 +184,22 @@ const MemeCardProfile = ({
                 hover:before:right-0 hover:before:opacity-100
                 -skew-x-[21deg] group"
               >
-                <span className="inline-block skew-x-[21deg]">Cancel</span>
+                <span className="inline-block skew-x-[21deg]">Close</span>
               </button>
-              <button
-                onClick={() => {
-                  // Handle claim rewards logic here
-                  setShowRewardDetails(false);
-                }}
-                className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
-                before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
-                hover:before:right-0 hover:before:opacity-100
-                -skew-x-[21deg] group"
-              >
-                <span className="inline-block skew-x-[21deg]">Claim</span>
-              </button>
+              {rewardsData?.data?.length > 0 && (
+                <button
+                  onClick={() => {
+                    // Handle claim rewards logic here
+                    setShowRewardDetails(false);
+                  }}
+                  className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
+                  before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                  hover:before:right-0 hover:before:opacity-100
+                  -skew-x-[21deg] group"
+                >
+                  <span className="inline-block skew-x-[21deg]">Claim</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
