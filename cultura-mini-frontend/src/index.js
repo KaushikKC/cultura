@@ -1,6 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import "./index.css";
 import App from "./App";
 import Wallet from "./components/wallet/thirdweb/Wallet";
@@ -19,7 +23,7 @@ import AgentDetails from "./pages/Agent";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Wallet />,
+    element: <Navigate to="/landingpage" replace />,
   },
   {
     path: "/home",
@@ -54,7 +58,7 @@ const router = createBrowserRouter([
     element: <Profile />,
   },
   {
-    path: "/meme/:ipId", // Add the new route with parameter
+    path: "/meme/:ipId",
     element: <MemeCardIndividual />,
   },
   {
