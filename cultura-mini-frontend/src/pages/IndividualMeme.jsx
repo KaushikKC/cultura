@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { toast } from "react-hot-toast";
 
 const API_BASE_URL = "http://localhost:3001/api";
@@ -307,6 +308,7 @@ const MemeCardIndividual = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
