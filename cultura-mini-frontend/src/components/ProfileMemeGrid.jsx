@@ -11,18 +11,39 @@ const ProfileMemeGrid = ({ address }) => {
   useEffect(() => {
     const fetchUserTracking = async () => {
       try {
-        const trackingResponse = await fetch(
-          `https://cultura-e6o8.vercel.app/api/user-tracking/${address}`
-        );
-        const trackingData = await trackingResponse.json();
-        console.log(trackingData, "trackingData");
+        // Normalize the address to lowercase and remove any whitespace
+        console.log(address); // its giving a address without a alphabet
 
-        if (trackingData.success && trackingData.data.ipIds) {
+        const hardCodedAddress = "0xbb7462adA69561Ff596322aA2f9595c28E47FD6aa";
+
+        // Ensure proper URL construction with base URL
+        const baseUrl = "https://cultura-e6o8.vercel.app";
+        const apiPath = "/api/user-tracking";
+        const fullUrl = `${baseUrl}${apiPath}/${hardCodedAddress}`;
+        console.log("Fetching from:", fullUrl);
+
+        const trackingResponse = await fetch(fullUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!trackingResponse.ok) {
+          throw new Error(`HTTP error! status: ${trackingResponse.status}`);
+        }
+
+        const trackingData = await trackingResponse.json();
+        console.log("Tracking API Response:", trackingData);
+
+        if (trackingData.success && trackingData.data?.ipIds) {
           setIpIds(trackingData.data.ipIds);
         } else {
-          throw new Error("Failed to fetch user tracking data");
+          throw new Error(trackingData.error || "No tracking data found");
         }
       } catch (err) {
+        console.error("Tracking API Error:", err);
         setError("Failed to fetch user tracking data: " + err.message);
         setLoading(false);
       }
@@ -43,10 +64,10 @@ const ProfileMemeGrid = ({ address }) => {
         const options = {
           method: "POST",
           headers: {
-            accept: "application/json",
+            Accept: "application/json",
             "X-Api-Key": "MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U",
             "X-Chain": "story-aeneid",
-            "content-type": "application/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             options: {
@@ -58,11 +79,21 @@ const ProfileMemeGrid = ({ address }) => {
           }),
         };
 
+        console.log("Fetching memes with options:", options);
+
         const response = await fetch(url, options);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const json = await response.json();
-        setMemes(json.data);
+        console.log("Memes API Response:", json);
+
+        setMemes(json.data || []);
         setLoading(false);
       } catch (err) {
+        console.error("Memes API Error:", err);
         setError("Failed to fetch memes: " + err.message);
         setLoading(false);
       }
@@ -83,6 +114,14 @@ const ProfileMemeGrid = ({ address }) => {
     return (
       <div className="flex justify-center items-center min-h-screen text-red-600">
         Error: {error}
+      </div>
+    );
+  }
+
+  if (!memes.length) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600">
+        No memes found for this address
       </div>
     );
   }
