@@ -168,7 +168,7 @@ function Dashboard() {
       const savedMeme = await axios.post(
         "https://cultura-e6o8.vercel.app/api/user-tracking/",
         {
-          userAddress: account.address,
+          userAddress: "0xbb7462adA69561Ff596322A2f9595c28E47FD6aa",
           ipIds: [response.ipId],
         }
       );

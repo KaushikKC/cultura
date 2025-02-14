@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ConnectButton } from "thirdweb/react";
 import { useActiveAccount } from "thirdweb/react";
@@ -8,39 +8,77 @@ import { client, nftCollectionAddress } from "../utils/utils";
 import { uploadJSONToIPFS } from "../utils/uploadToIpfs.ts";
 import { zeroAddress } from "viem";
 import { zeroHash } from "viem";
+import axios from "axios";
 
 function Navbar() {
   const [showPopup, setShowPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [userAgentData, setUserAgentData] = useState(null);
   const account = useActiveAccount();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isActive = (path) => location.pathname === path;
 
+  useEffect(() => {
+    const checkUserAgent = async () => {
+      if (account?.address) {
+        try {
+          const response = await axios.get(
+            "https://cultura-e6o8.vercel.app/api/user-ai/0xbb7462adA69561Ff596322A2f9595c28E47FD6aa"
+          );
+
+          console.log(response, "response of get req of user ai");
+          // With axios, the data is already parsed
+          const { data } = response;
+          console.log("User Agent Status:", data);
+
+          if (data.success) {
+            setUserAgentData(data.data);
+            console.log("Has AI Agent:", data.data.hasAIAgent);
+            console.log("IP IDs:", data.data.ipIds);
+
+            if (
+              data.data.hasAIAgent &&
+              data.data.ipIds[0] &&
+              location.pathname === "/create-agent"
+            ) {
+              navigate(`/agent/${data.data.ipIds[0]}`);
+            }
+          }
+        } catch (error) {
+          console.error("Error checking user agent:", error);
+        }
+      }
+    };
+
+    checkUserAgent();
+  }, [account?.address, navigate, location.pathname]);
+
   const handleCreateAgent = async () => {
     setIsLoading(true);
+
     try {
       const url =
         "https://imgs.search.brave.com/vqtUVPEqQXFlulgyimqP3EzgwIjwpEsrCckrgEinmFc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWdj/ZG4uc3RhYmxlZGlm/ZnVzaW9ud2ViLmNv/bS8yMDI0LzEyLzIx/LzM3NjRjODZhLWYy/OTItNDA0OS04NjBk/LTlkZmVlOGRlZGRl/Yy5qcGc";
 
       const commercialRemixTerms = {
         transferable: true,
-        royaltyPolicy: "0xbe54fb168b3c982b7aae60db6cf75bd8447b390e", // insert RoyaltyPolicyLAP address from https://docs.story.foundation/docs/deployed-smart-contracts
+        royaltyPolicy: "0xbe54fb168b3c982b7aae60db6cf75bd8447b390e",
         defaultMintingFee: BigInt(0),
         expiration: BigInt(0),
         commercialUse: true,
         commercialAttribution: true,
         commercializerChecker: zeroAddress,
         commercializerCheckerData: zeroAddress,
-        commercialRevShare: 50, // can claim 50% of derivative revenue
+        commercialRevShare: 50,
         commercialRevCeiling: BigInt(0),
         derivativesAllowed: true,
         derivativesAttribution: true,
         derivativesApproval: false,
         derivativesReciprocal: true,
         derivativeRevCeiling: BigInt(0),
-        currency: "0x1514000000000000000000000000000000000000", // insert $WIP address from https://docs.story.foundation/docs/deployed-smart-contracts
+        currency: "0x1514000000000000000000000000000000000000",
         uri: "",
       };
 
@@ -54,6 +92,7 @@ function Navbar() {
         expectMinimumGroupRewardShare: 0,
         expectGroupRewardPool: zeroAddress,
       };
+
       const ipMetadata = client.ipAsset.generateIpMetadata({
         title: "Cultura AI-Agent",
         description:
@@ -107,14 +146,39 @@ function Navbar() {
         txOptions: { waitForTransaction: true },
       });
 
-      // After successful minting, navigate to agent page
-      const agentId = response.ipId;
+      console.log("Minting response:", response); // Log minting response
+
+      // After successful minting, create user agent record
+      const agentResponse = await fetch(
+        "https://cultura-e6o8.vercel.app/api/user-ai",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userAddress: "0xbb7462adA69561Ff596322A2f9595c28E47FD6aa",
+            ipId: response.ipId,
+          }),
+        }
+      );
+
+      console.log("Agent creation response:", agentResponse.data);
+
       setShowPopup(false);
-      navigate(`/agent/${agentId}`);
+      navigate(`/agent/${response.ipId}`);
     } catch (error) {
       console.error("Error creating agent:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAgentButtonClick = () => {
+    if (userAgentData?.hasAIAgent && userAgentData?.ipIds[0]) {
+      navigate(`/agent/${userAgentData.ipIds[0]}`);
+    } else {
+      setShowPopup(true);
     }
   };
 
@@ -150,124 +214,128 @@ function Navbar() {
             >
               Profile
             </Link>
-            <div>
-              <button
-                onClick={() => setShowPopup(true)}
-                className="relative text-white cursor-pointer bg-transparent border-none 
-                after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-white
-                after:transition-[width] after:duration-500 after:ease-in-out 
-                hover:after:w-full focus:after:w-full"
-              >
-                Create Agent
-              </button>
+            {userAgentData && (
+              <div>
+                <button
+                  onClick={handleAgentButtonClick}
+                  className="relative text-white cursor-pointer bg-transparent border-none 
+                  after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-white
+                  after:transition-[width] after:duration-500 after:ease-in-out 
+                  hover:after:w-full focus:after:w-full"
+                >
+                  {userAgentData.hasAIAgent ? "See Agent" : "Create Agent"}
+                </button>
 
-              {showPopup && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[1000]">
-                  <div className="bg-white p-8 w-[90%] md:w-[600px] rounded-lg shadow-xl text-left relative">
-                    <h2 className="text-3xl text-[#3E2723] font-bold mb-6">
-                      Create Your AI Agent
-                    </h2>
+                {showPopup && !userAgentData.hasAIAgent && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[1000]">
+                    <div className="bg-white p-8 w-[90%] md:w-[600px] rounded-lg shadow-xl text-left relative">
+                      <h2 className="text-3xl text-[#3E2723] font-bold mb-6">
+                        Create Your AI Agent
+                      </h2>
 
-                    <div className="prose text-gray-700 space-y-4">
-                      <p className="text-lg">
-                        Our AI agent is designed to help creators{" "}
-                        <strong>automate licensing and maximize revenue</strong>{" "}
-                        from their viral memes. Once enabled, the agent{" "}
-                        <strong>tracks engagement metrics</strong> (likes,
-                        shares, impressions) on our platform and{" "}
-                        <strong>
-                          automatically licenses high-performing memes as
-                          derivatives
-                        </strong>
-                        .
-                      </p>
+                      <div className="prose text-gray-700 space-y-4">
+                        <p className="text-lg">
+                          Our AI agent is designed to help creators{" "}
+                          <strong>
+                            automate licensing and maximize revenue
+                          </strong>{" "}
+                          from their viral memes. Once enabled, the agent{" "}
+                          <strong>tracks engagement metrics</strong> (likes,
+                          shares, impressions) on our platform and{" "}
+                          <strong>
+                            automatically licenses high-performing memes as
+                            derivatives
+                          </strong>
+                          .
+                        </p>
 
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="text-xl font-semibold mb-4">
-                          Key Benefits:
-                        </h3>
-                        <ul className="space-y-3">
-                          <li className="flex items-start">
-                            <Check
-                              className="text-green-500 mr-2 mt-1"
-                              size={20}
-                            />
-                            <span>
-                              <strong>Effortless Monetization:</strong> Licensed
-                              memes can be distributed with royalty agreements,
-                              ensuring fair earnings.
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <Check
-                              className="text-green-500 mr-2 mt-1"
-                              size={20}
-                            />
-                            <span>
-                              <strong>IP Registration:</strong> The agent mints
-                              the meme as an IP asset on Story Protocol,
-                              securing ownership.
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <Check
-                              className="text-green-500 mr-2 mt-1"
-                              size={20}
-                            />
-                            <span>
-                              <strong>Automated Licensing:</strong> Other users
-                              can legally remix and use the meme while ensuring
-                              you receive royalties.
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <Check
-                              className="text-green-500 mr-2 mt-1"
-                              size={20}
-                            />
-                            <span>
-                              <strong>Maximize Exposure & Earnings:</strong>{" "}
-                              Licensed memes generate revenue across multiple
-                              platforms through smart licensing.
-                            </span>
-                          </li>
-                        </ul>
-                      </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h3 className="text-xl font-semibold mb-4">
+                            Key Benefits:
+                          </h3>
+                          <ul className="space-y-3">
+                            <li className="flex items-start">
+                              <Check
+                                className="text-green-500 mr-2 mt-1"
+                                size={20}
+                              />
+                              <span>
+                                <strong>Effortless Monetization:</strong>{" "}
+                                Licensed memes can be distributed with royalty
+                                agreements, ensuring fair earnings.
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <Check
+                                className="text-green-500 mr-2 mt-1"
+                                size={20}
+                              />
+                              <span>
+                                <strong>IP Registration:</strong> The agent
+                                mints the meme as an IP asset on Story Protocol,
+                                securing ownership.
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <Check
+                                className="text-green-500 mr-2 mt-1"
+                                size={20}
+                              />
+                              <span>
+                                <strong>Automated Licensing:</strong> Other
+                                users can legally remix and use the meme while
+                                ensuring you receive royalties.
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <Check
+                                className="text-green-500 mr-2 mt-1"
+                                size={20}
+                              />
+                              <span>
+                                <strong>Maximize Exposure & Earnings:</strong>{" "}
+                                Licensed memes generate revenue across multiple
+                                platforms through smart licensing.
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
 
-                      <p className="text-lg font-medium">
-                        With Cultura's AI agent, your viral memes don't just
-                        bring engagement—they generate{" "}
-                        <strong>real, on-chain value</strong>. 🚀
-                      </p>
+                        <p className="text-lg font-medium">
+                          With Cultura's AI agent, your viral memes don't just
+                          bring engagement—they generate{" "}
+                          <strong>real, on-chain value</strong>. 🚀
+                        </p>
 
-                      <div className="flex justify-end space-x-4 mt-6">
-                        <button
-                          onClick={() => setShowPopup(false)}
-                          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                        >
-                          Cancel
-                        </button>
+                        <div className="flex justify-end space-x-4 mt-6">
+                          <button
+                            onClick={() => setShowPopup(false)}
+                            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                          >
+                            Cancel
+                          </button>
 
-                        <button
-                          onClick={handleCreateAgent}
-                          disabled={isLoading}
-                          className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
-                        >
-                          {isLoading ? (
-                            <span>Creating...</span>
-                          ) : (
-                            <>
-                              <Rocket className="mr-2" size={20} />
-                              <span>Launch Agent</span>
-                            </>
-                          )}
-                        </button>
+                          <button
+                            onClick={handleCreateAgent}
+                            disabled={isLoading}
+                            className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
+                          >
+                            {isLoading ? (
+                              <span>Creating...</span>
+                            ) : (
+                              <>
+                                <Rocket className="mr-2" size={20} />
+                                <span>Launch Agent</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
             <div className="flex flex-col items-end gap-2">
               <div className="cursor-pointer text-[#808000] font-semibold uppercase bg-[#412E2A] active:translate-x-0.5 active:translate-y-0.5 hover:shadow-[0.5rem_0.5rem_#D1B29A,-0.5rem_-0.5rem_#808000] transition">
                 <ConnectButton
