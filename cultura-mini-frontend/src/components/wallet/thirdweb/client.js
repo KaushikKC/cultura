@@ -1,9 +1,6 @@
+// First, create your Thirdweb client (this should be in a separate client.ts file)
 import { createThirdwebClient } from "thirdweb";
 
-if (!process.env.REACT_APP_THIRDWEB_CLIENT_ID) {
-  console.error("REACT_APP_THIRDWEB_CLIENT_ID is not defined");
-}
-
-export const client = createThirdwebClient({
-  clientId: process.env.REACT_APP_THIRDWEB_CLIENT_ID || "",
+export const thirdwebClient = createThirdwebClient({
+  clientId: process.env.REACT_APP_THIRDWEB_CLIENT_ID,
 });
