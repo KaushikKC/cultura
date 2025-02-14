@@ -1,5 +1,7 @@
+// MemeCard.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import RegisterDerivative from "./License";
 
 const MemeCard = ({
   topic,
@@ -11,18 +13,25 @@ const MemeCard = ({
   tokenUri,
 }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const [showDerivative, setShowDerivative] = useState(false);
   const navigate = useNavigate();
 
   const handleCardClick = () => {
     navigate(`/meme/${ipId}`);
   };
 
+  const handleConfirmClick = () => {
+    setShowPopup(false);
+    setShowDerivative(true);
+  };
+
   return (
-    <div
-      className="relative w-[400px] h-[550px] bg-[#D1B29A] p-4 rounded-xl border-2 border-[#3E2723] overflow-hidden cursor-pointer"
-      style={{ boxShadow: "0.4rem 0.4rem #3E2723" }}
-      onClick={handleCardClick}
-    >
+    <>
+      <div
+        className="relative w-[400px] h-[550px] bg-[#D1B29A] p-4 rounded-xl border-2 border-[#3E2723] overflow-hidden cursor-pointer"
+        style={{ boxShadow: "0.4rem 0.4rem #3E2723" }}
+        onClick={handleCardClick}
+      >
       {/* Rest of the MemeCard component remains the same */}
       {isDerived && (
         <div className="absolute top-2 left-2 bg-[#3E2723] text-white px-3 py-1 text-xs font-bold uppercase rounded-md shadow-md">
@@ -80,58 +89,63 @@ const MemeCard = ({
           </button>
         </div>
       </div>
+        {showPopup && isMarketplace && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 md:p-8 w-[90%] md:w-[500px] rounded-lg shadow-xl text-center relative">
+              <h2 className="text-2xl font-bold text-[#3E2723] mb-4">
+                License Meme
+              </h2>
 
-      {showPopup && isMarketplace && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 md:p-8 w-[90%] md:w-[500px] rounded-lg shadow-xl text-center relative">
-            <h2 className="text-2xl font-bold text-[#3E2723] mb-4">
-              License Meme
-            </h2>
+              <div className="text-left mb-4 text-gray-700">
+                <p className="mb-2">
+                  <strong>IP ID:</strong> {ipId}
+                </p>
+                <p className="mb-2">
+                  <strong>Token ID:</strong> {tokenId}
+                </p>
+                <p className="mb-2 break-all">
+                  <strong>Token URI:</strong> {tokenUri}
+                </p>
+              </div>
 
-            <div className="text-left mb-4 text-gray-700">
-              <p className="mb-2">
-                <strong>IP ID:</strong> {ipId}
+              <p className="mt-3 text-gray-700">
+                By licensing this meme, you agree to the platform's licensing
+                terms and conditions.
               </p>
-              <p className="mb-2">
-                <strong>Token ID:</strong> {tokenId}
-              </p>
-              <p className="mb-2 break-all">
-                <strong>Token URI:</strong> {tokenUri}
-              </p>
-            </div>
 
-            <p className="mt-3 text-gray-700">
-              By licensing this meme, you agree to the platform's licensing
-              terms and conditions.
-            </p>
-
-            <div className="flex justify-center space-x-5 mt-5">
-              <button
-                onClick={() => setShowPopup(false)}
-                className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-red-500 hover:bg-red-600 transition-colors duration-500
-                before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-red-700 before:opacity-0 before:-z-10 before:transition-all before:duration-500
-                hover:before:right-0 hover:before:opacity-100
-                -skew-x-[21deg] group"
-              >
-                <span className="inline-block skew-x-[21deg]">Cancel</span>
-              </button>
-              <button
-                onClick={() => {
-                  setShowPopup(false);
-                  alert("Meme Licensed!");
-                }}
-                className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
-                before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
-                hover:before:right-0 hover:before:opacity-100
-                -skew-x-[21deg] group"
-              >
-                <span className="inline-block skew-x-[21deg]">Confirm</span>
-              </button>
+              <div className="flex justify-center space-x-5 mt-5">
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-red-500 hover:bg-red-600 transition-colors duration-500
+                  before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-red-700 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                  hover:before:right-0 hover:before:opacity-100
+                  -skew-x-[21deg] group"
+                >
+                  <span className="inline-block skew-x-[21deg]">Cancel</span>
+                </button>
+                <button
+                  onClick={handleConfirmClick}
+                  className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
+                  before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+                  hover:before:right-0 hover:before:opacity-100
+                  -skew-x-[21deg] group"
+                >
+                  <span className="inline-block skew-x-[21deg]">Confirm</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
+
+      {showDerivative && (
+        <RegisterDerivative
+          parentIpId={ipId}
+          ipfsImageUrl={imageUrl}
+          onComplete={() => setShowDerivative(false)}
+        />
       )}
-    </div>
+    </>
   );
 };
 
