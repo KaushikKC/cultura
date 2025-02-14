@@ -10,7 +10,7 @@ function Navbar() {
   const account = useActiveAccount();
   const location = useLocation();
 
-  const isActive = path => location.pathname === path;
+  const isActive = (path) => location.pathname === path;
   // const { safeAddress, deploySafe, loading } = useSafe();
 
   // useEffect(
@@ -69,7 +69,7 @@ function Navbar() {
                 Create Agent
               </button>
 
-              {showPopup &&
+              {showPopup && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[1000]">
                   <div className="bg-white p-6 md:p-8 w-[90%] md:w-[400px] rounded-lg shadow-xl text-center relative">
                     <h2 className="text-2xl text-[#3E2723]">Create Agent</h2>
@@ -106,7 +106,8 @@ function Navbar() {
                       </button>
                     </div>
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className="cursor-pointer text-[#808000] font-semibold uppercase bg-[#412E2A] active:translate-x-0.5 active:translate-y-0.5 hover:shadow-[0.5rem_0.5rem_#D1B29A,-0.5rem_-0.5rem_#808000] transition">
@@ -121,8 +122,8 @@ function Navbar() {
                       padding: "0px",
                       backgroundColor: "#D9D9D9",
                       color: "#3E2723",
-                      fontWeight: 600
-                    }
+                      fontWeight: 600,
+                    },
                   }}
                   connectModal={{ size: "wide" }}
                 />

@@ -168,7 +168,7 @@ function Dashboard() {
         License Terms ID: ${response.licenseTermsIds}
       `);
 
-      const savedMeme = axios.post(
+      const savedMeme = await axios.post(
         "https://cultura-e6o8.vercel.app/api/user-tracking/",
         {
           userAddress: account.address,
