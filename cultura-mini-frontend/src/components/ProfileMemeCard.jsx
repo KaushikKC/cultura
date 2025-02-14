@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
+import { client } from "../utils/utils";
 
 const MemeCardProfile = ({
   topic,
@@ -10,7 +12,9 @@ const MemeCardProfile = ({
   tokenUri,
 }) => {
   const [showRewardDetails, setShowRewardDetails] = useState(false);
+  const [showClaimConfirmation, setShowClaimConfirmation] = useState(false);
   const [rewardsData, setRewardsData] = useState(null);
+  const [claimResult, setClaimResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -61,7 +65,92 @@ const MemeCardProfile = ({
     fetchRewardsData();
   };
 
-  // Calculate total rewards
+  const handleClaimConfirmation = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get unique childIpIds from the rewards data
+      const childIpIds = [
+        ...new Set(rewardsData.data.map((payment) => payment.payerIpId)),
+      ];
+
+      // Validate parameters before making the call
+      if (!window.ethereum?.selectedAddress) {
+        throw new Error("Wallet not connected");
+      }
+
+      if (!childIpIds.length) {
+        throw new Error("No child IPs found");
+      }
+
+      // Log the parameters for debugging
+      console.log("Claim Parameters:", {
+        ancestorIpId: ipId,
+        claimer: window.ethereum.selectedAddress,
+        childIpIds,
+        tokenAddress: WIP_TOKEN_ADDRESS,
+        royaltyPolicies: ["0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E"],
+      });
+
+      try {
+        const claimRevenue = await client.royalty.claimAllRevenue({
+          ancestorIpId: ipId,
+          // Use the wallet address instead of ipId for claimer
+          claimer: window.ethereum.selectedAddress,
+          currencyTokens: [WIP_TOKEN_ADDRESS],
+          childIpIds: childIpIds,
+          royaltyPolicies: ["0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E"],
+          claimOptions: {
+            autoTransferAllClaimedTokensFromIp: true,
+            autoUnwrapIpTokens: true,
+          },
+        });
+
+        setClaimResult(claimRevenue);
+        setShowClaimConfirmation(true);
+        setShowRewardDetails(false);
+      } catch (err) {
+        // Log the full error for debugging
+        console.log("Contract Error:", {
+          message: err.message,
+          data: err.data,
+          error: err.error,
+          fullError: err,
+        });
+
+        // Check if this is a contract revert error
+        if (err.message.includes("0xa05b90b8")) {
+          try {
+            // Get the error data from the error object
+            const errorData = err.data || err.error?.data;
+            console.log("Error data:", errorData);
+
+            // Try to extract meaningful information from the error
+            const errorMessage =
+              err.message.split("Contract Call:")[1] || err.message;
+            setError(`Transaction Failed: ${errorMessage}`);
+          } catch (decodeErr) {
+            console.error("Error processing error details:", decodeErr);
+            setError(
+              "Contract Error: Unable to process claim. Please check your wallet and try again."
+            );
+          }
+        } else {
+          setError("Failed to claim rewards. Please try again later.");
+          console.error("Original error:", err);
+        }
+      }
+    } catch (outerErr) {
+      setError(
+        "Failed to initiate claim. Please check your wallet connection."
+      );
+      console.error("Outer error:", outerErr);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const calculateTotalRewards = () => {
     if (!rewardsData?.data) return 0;
     return rewardsData.data.reduce(
@@ -70,15 +159,8 @@ const MemeCardProfile = ({
     );
   };
 
-  // Get the last claim timestamp
-  const getLastClaimTimestamp = () => {
-    if (!rewardsData?.data?.length) return null;
-    const sortedData = [...rewardsData.data].sort(
-      (a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp)
-    );
-    return new Date(
-      Number(sortedData[0].blockTimestamp) * 1000
-    ).toLocaleDateString();
+  const formatHash = (hash) => {
+    return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
   };
 
   return (
@@ -124,53 +206,62 @@ const MemeCardProfile = ({
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="reward-popup bg-white p-6 md:p-8 w-[90%] md:w-[500px] rounded-lg shadow-xl text-center relative">
+          <div className="reward-popup bg-white p-6 md:p-8 w-[90%] md:w-[600px] rounded-lg shadow-xl text-center relative">
             <h2 className="text-2xl font-bold text-[#3E2723] mb-4">
-              Available Rewards
+              Claim Available Rewards
             </h2>
 
             {error ? (
               <div className="text-red-500 mb-4">{error}</div>
             ) : (
-              <div className="text-left mb-4 text-gray-700">
-                <p className="mb-2">
-                  <strong>NFT ID:</strong> {tokenId}
-                </p>
-                <p className="mb-2">
-                  <strong>Total Earned Rewards:</strong>{" "}
-                  {calculateTotalRewards()} WIP
-                </p>
-                <p className="mb-2">
-                  <strong>Last Claim:</strong>{" "}
-                  {getLastClaimTimestamp() || "No claims yet"}
-                </p>
-                <p className="mb-2">
-                  <strong>Number of Transactions:</strong>{" "}
-                  {rewardsData?.data?.length || 0}
-                </p>
+              <div className="text-left mb-4">
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <h3 className="text-lg font-semibold text-[#3E2723] mb-2">
+                    Summary
+                  </h3>
+                  <p className="mb-2">
+                    <strong>Total Available:</strong> {calculateTotalRewards()}{" "}
+                    WIP
+                  </p>
+                  <p className="mb-2">
+                    <strong>Number of Contributors:</strong>{" "}
+                    {new Set(rewardsData?.data?.map((p) => p.payerIpId)).size}
+                  </p>
+                </div>
 
                 <div className="mt-4">
-                  <strong className="block mb-2">Transaction Details:</strong>
-                  <div className="max-h-40 overflow-y-auto">
-                    {rewardsData?.data?.map((payment, index) => (
-                      <div
-                        key={payment.id}
-                        className="mb-3 p-2 bg-gray-50 rounded"
-                      >
-                        <p className="text-sm">
-                          <strong>Payer IP:</strong> {payment.payerIpId}
-                        </p>
-                        <p className="text-sm">
-                          <strong>Block Number:</strong> {payment.blockNumber}
-                        </p>
-                        <p className="text-sm">
-                          <strong>Token Address:</strong> {payment.token}
-                        </p>
-                        <p className="text-sm">
-                          <strong>Amount:</strong> {payment.amount} WIP
-                        </p>
-                      </div>
-                    ))}
+                  <h3 className="text-lg font-semibold text-[#3E2723] mb-2">
+                    Derivative Memes Contributing
+                  </h3>
+                  <div className="max-h-48 overflow-y-auto">
+                    {Array.from(
+                      new Set(rewardsData?.data?.map((p) => p.payerIpId))
+                    ).map((payerId, index) => {
+                      const payments = rewardsData.data.filter(
+                        (p) => p.payerIpId === payerId
+                      );
+                      const total = payments.reduce(
+                        (sum, p) => sum + Number(p.amount),
+                        0
+                      );
+
+                      return (
+                        <div
+                          key={payerId}
+                          className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <p className="text-sm font-medium">
+                            Derivative #{index + 1}
+                          </p>
+                          <p className="text-sm">
+                            <strong>IP ID:</strong> {payerId}
+                          </p>
+                          <p className="text-sm">
+                            <strong>Total Contribution:</strong> {total} WIP
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -184,23 +275,70 @@ const MemeCardProfile = ({
                 hover:before:right-0 hover:before:opacity-100
                 -skew-x-[21deg] group"
               >
-                <span className="inline-block skew-x-[21deg]">Close</span>
+                <span className="inline-block skew-x-[21deg]">Cancel</span>
               </button>
               {rewardsData?.data?.length > 0 && (
                 <button
-                  onClick={() => {
-                    // Handle claim rewards logic here
-                    setShowRewardDetails(false);
-                  }}
+                  onClick={handleClaimConfirmation}
+                  disabled={isLoading}
                   className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
                   before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
                   hover:before:right-0 hover:before:opacity-100
                   -skew-x-[21deg] group"
                 >
-                  <span className="inline-block skew-x-[21deg]">Claim</span>
+                  <span className="inline-block skew-x-[21deg]">
+                    {isLoading ? "Processing..." : "Transfer to Wallet"}
+                  </span>
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {showClaimConfirmation && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white p-6 md:p-8 w-[90%] md:w-[500px] rounded-lg shadow-xl text-center">
+            <h2 className="text-2xl font-bold text-green-600 mb-4">
+              Claim Successful!
+            </h2>
+
+            <div className="text-left mb-6">
+              <h3 className="font-semibold mb-2">Transaction Details:</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                {claimResult?.txHashes?.map((hash, index) => (
+                  <a
+                    key={hash}
+                    href={`https://aeneid.storyscan.xyz/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mb-2 text-blue-600 hover:text-blue-800"
+                  >
+                    Transaction {index + 1}: {formatHash(hash)}
+                  </a>
+                ))}
+
+                {claimResult?.claimedTokens?.map((token, index) => (
+                  <p key={index} className="mb-1">
+                    <strong>Claimed Amount {index + 1}:</strong>{" "}
+                    {token.amount.toString()} WIP
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowClaimConfirmation(false)}
+              className="relative text-white inline-block font-medium text-[15px] w-fit px-4 py-1 cursor-pointer border-none bg-green-600 hover:bg-green-700 transition-colors duration-500
+              before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:right-full before:bg-green-800 before:opacity-0 before:-z-10 before:transition-all before:duration-500
+              hover:before:right-0 hover:before:opacity-100
+              -skew-x-[21deg] group"
+            >
+              <span className="inline-block skew-x-[21deg]">Close</span>
+            </button>
           </div>
         </div>
       )}
