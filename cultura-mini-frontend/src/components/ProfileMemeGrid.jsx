@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MemeCardProfile from "./ProfileMemeCard";
+import { nftCollectionAddress } from "../utils/utils";
 
 const ProfileMemeGrid = ({ address }) => {
   const [memes, setMemes] = useState([]);
@@ -72,7 +73,7 @@ const ProfileMemeGrid = ({ address }) => {
           body: JSON.stringify({
             options: {
               where: {
-                tokenContract: "0x1C7AA3312f8e4dBA6672fAb191AbC007FE01D651",
+                tokenContract: nftCollectionAddress,
               },
               ipAssetIds: ipIds,
             },
