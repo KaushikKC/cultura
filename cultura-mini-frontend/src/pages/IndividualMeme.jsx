@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { toast } from "react-hot-toast";
 
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "https://cultura-e6o8.vercel.app/api";
 
 const MemeCardIndividual = () => {
   const { ipId } = useParams();
