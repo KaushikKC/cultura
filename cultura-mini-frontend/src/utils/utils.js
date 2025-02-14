@@ -1,7 +1,6 @@
 import { StoryClient } from "@story-protocol/core-sdk";
 import { http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { useActiveAccount } from "thirdweb/react";
 
 // Get private key from environment variables
 const privateKey = process.env.REACT_APP_PRIVATE_KEY_WALLET_USER_1;

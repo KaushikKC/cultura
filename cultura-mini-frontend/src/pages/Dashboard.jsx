@@ -22,9 +22,6 @@ import { fetchThroughProxy } from "../utils/uploadToIpfs.ts";
 function Dashboard() {
   const account = useActiveAccount();
   const navigate = useNavigate();
-  const [userAddress, setUserAddress] = useState(
-    "0x5BDf4cE6749d7e93c05897fa23871C280BF59b5b"
-  );
   const [memeHistory, setMemeHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,18 +80,6 @@ function Dashboard() {
 
       const openAiImageUrl = image.data[0].b64_json;
       console.log("Image URL:", openAiImageUrl);
-
-      // // Fetch image using our enhanced fetchImageData function which handles proxies and fallbacks
-      // let imageFile;
-      // try {
-      //   imageFile = await fetchImageData(openAiImageUrl);
-      //   console.log("Successfully fetched image file:", imageFile);
-      // } catch (error) {
-      //   console.error("Failed to fetch image:", error);
-      //   setError("Failed to process image. Please try again.");
-      //   setLoading(false);
-      //   return;
-      // }
 
       // Upload to IPFS
       const { ipfsImageUrl } = await uploadImageToIPFS(openAiImageUrl);
@@ -182,6 +167,19 @@ function Dashboard() {
         IPA ID: ${response.ipId},
         License Terms ID: ${response.licenseTermsIds}
       `);
+
+      const savedMeme = axios.post(
+        "https://cultura-e6o8.vercel.app/api/user-tracking/",
+        {
+          userAddress: account.address,
+          ipIds: [response.ipId],
+        }
+      );
+
+      console.log("Saved meme:", savedMeme);
+      console.log(savedMeme.data, "savedMeme.data");
+      console.log(savedMeme.status, "savedMeme.status");
+
       setLoading(false);
 
       // Navigate to meme page with topic and image URL
