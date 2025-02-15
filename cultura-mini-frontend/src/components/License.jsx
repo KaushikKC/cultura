@@ -89,7 +89,7 @@ const RegisterDerivative = ({ parentIpId, ipfsImageUrl, onComplete }) => {
         receiverIpId: parentIpId,
         payerIpId: response.ipId,
         token: WIP_TOKEN_ADDRESS,
-        amount: 0.3,
+        amount: 0.03,
         txOptions: { waitForTransaction: true },
       });
 

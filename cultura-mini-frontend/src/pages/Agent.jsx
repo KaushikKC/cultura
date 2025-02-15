@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Play, PauseCircle, BarChart2, Settings, Bot } from "lucide-react";
+import { Play, PauseCircle, Settings, Bot, Timer } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const API_BASE_URL = "https://cultura-e6o8.vercel.app/api";
+const CHECK_INTERVAL = 60; // 1 minute in seconds
 
 function AgentDetails() {
   const { id } = useParams();
@@ -12,13 +13,8 @@ function AgentDetails() {
   const [agentData, setAgentData] = useState(null);
   const [isAgentActive, setIsAgentActive] = useState(false);
   const [monitoringStats, setMonitoringStats] = useState({});
-  const [monitoringSettings, setMonitoringSettings] = useState({
-    checkFrequency: 1 / 60, // 1 minute converted to hours
-    viewThreshold: 2, // Lower threshold for testing
-    shareThreshold: 1, // Lower threshold for testing
-    autoLicense: true,
-  });
-  const [monitoringInterval, setMonitoringInterval] = useState(null);
+  const [countdown, setCountdown] = useState(CHECK_INTERVAL);
+  const [transactions, setTransactions] = useState([]);
   const [currentlyMonitoring, setCurrentlyMonitoring] = useState("");
 
   // Fetch all meme IDs from Story Protocol
@@ -42,6 +38,7 @@ function AgentDetails() {
       });
       const data = await response.json();
       const ids = data.data.map((item) => item.id);
+      console.log("🔍 Found memes to monitor:", ids);
       setMemeIds(ids);
       return ids;
     } catch (error) {
@@ -66,82 +63,107 @@ function AgentDetails() {
     }
   };
 
+  // Find meme with highest engagement
+  const findHighestEngagement = (stats) => {
+    let highestEngagement = 0;
+    let highestIpId = null;
+
+    Object.entries(stats).forEach(([ipId, stat]) => {
+      if (!stat) return;
+      const totalEngagement = (stat.views || 0) + (stat.shares?.total || 0);
+      if (totalEngagement > highestEngagement) {
+        highestEngagement = totalEngagement;
+        highestIpId = ipId;
+      }
+    });
+
+    return { ipId: highestIpId, engagement: highestEngagement };
+  };
+
   // License a specific meme
-  const licenseMeme = async (ipId) => {
+  const licenseMeme = async (ipId, stats) => {
     try {
-      console.log("into license meme");
-      console.log(ipId, "ipID");
-      toast.success(`Licensing meme ${ipId} due to high engagement`);
-      const stats = monitoringStats[ipId];
-      console.log(`Licensing meme ${ipId} with stats:`, stats);
+      console.log(`🎯 Licensing meme with highest engagement:`, {
+        ipId,
+        stats: stats[ipId],
+        totalEngagement:
+          (stats[ipId]?.views || 0) + (stats[ipId]?.shares?.total || 0),
+      });
+
+      toast.success(
+        `Found highest engaging meme: ${ipId}\nViews: ${
+          stats[ipId]?.views || 0
+        }\nShares: ${stats[ipId]?.shares?.total || 0}`,
+        { duration: 5000 }
+      );
     } catch (error) {
       console.error(`Error licensing meme ${ipId}:`, error);
       toast.error(`Failed to license meme ${ipId}`);
     }
   };
 
-  // Check if meme meets criteria
-  const checkLicensingCriteria = (stats) => {
-    if (!stats) return false;
-    return (
-      stats.views >= monitoringSettings.viewThreshold ||
-      stats.shares.total >= monitoringSettings.shareThreshold
-    );
-  };
-
   // Main monitoring function
   const monitorMemes = async () => {
+    if (!isAgentActive) return;
+
     console.log("🤖 Starting monitoring cycle...");
-    console.log("Current thresholds:", {
-      views: monitoringSettings.viewThreshold,
-      shares: monitoringSettings.shareThreshold,
-    });
     const ids = await fetchMemeIds();
+    console.log(`Found ${ids.length} memes to monitor`);
 
     const newStats = {};
+
+    // Check all memes
     for (const ipId of ids) {
+      console.log(`\n👀 Checking meme ${ipId}...`);
       const stats = await fetchMemeStats(ipId);
       newStats[ipId] = stats;
-
-      console.log(`Checking meme ${ipId}:`, stats);
-      if (stats && checkLicensingCriteria(stats)) {
-        console.log(`🎉 Meme ${ipId} meets criteria:`, stats);
-        if (monitoringSettings.autoLicense) {
-          await licenseMeme(ipId);
-        } else {
-          toast.success(
-            `Meme ${ipId} is ready for licensing! Views: ${stats.views}, Shares: ${stats.shares.total}`
-          );
-        }
-      }
     }
 
     setMonitoringStats(newStats);
+
+    // Find and license the meme with highest engagement
+    const { ipId, engagement } = findHighestEngagement(newStats);
+    if (ipId && engagement > 0) {
+      await licenseMeme(ipId, newStats);
+    }
+
     setCurrentlyMonitoring("");
+    console.log("✅ Cycle complete - waiting 1 minute before next check");
   };
 
   // Toggle agent state
   const toggleAgent = async () => {
     if (isAgentActive) {
-      if (monitoringInterval) {
-        clearInterval(monitoringInterval);
-        setMonitoringInterval(null);
-      }
       setIsAgentActive(false);
       setCurrentlyMonitoring("");
+      setCountdown(CHECK_INTERVAL);
       toast.success("Agent monitoring stopped");
     } else {
-      await monitorMemes();
-      const interval = setInterval(
-        monitorMemes,
-        1 * 60 * 1000 // Fixed 1 minute interval for testing
-      );
-      console.log("Agent started - checking every minute");
-      setMonitoringInterval(interval);
       setIsAgentActive(true);
       toast.success("Agent monitoring started");
+      await monitorMemes();
     }
   };
+
+  // Countdown effect
+  useEffect(() => {
+    let timer;
+    if (isAgentActive) {
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            monitorMemes();
+            return CHECK_INTERVAL;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isAgentActive]);
 
   // Initial data fetch
   useEffect(() => {
@@ -171,15 +193,6 @@ function AgentDetails() {
     fetchInitialData();
   }, [id]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (monitoringInterval) {
-        clearInterval(monitoringInterval);
-      }
-    };
-  }, [monitoringInterval]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -191,175 +204,154 @@ function AgentDetails() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Agent Status Card */}
-        <div className="col-span-2 bg-white rounded-xl shadow-lg p-6">
-          {/* Agent Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex flex-col space-y-2">
-              <h1 className="text-3xl font-bold text-gray-800">AI Agent</h1>
-              {agentData && (
-                <div className="text-sm text-gray-600">
-                  <p>IP ID: {id}</p>
-                  <p>Token ID: {agentData.nftMetadata?.tokenId}</p>
-                  <p>Contract: {agentData.nftMetadata?.tokenContract}</p>
-                </div>
-              )}
+        {/* Main Content - Col span 2 */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Agent Status Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col space-y-2">
+                <h1 className="text-3xl font-bold text-gray-800">AI Agent</h1>
+                {agentData && (
+                  <div className="text-sm text-gray-600">
+                    <p>IP ID: {id}</p>
+                    <p>Token ID: {agentData.nftMetadata?.tokenId}</p>
+                    <p>Contract: {agentData.nftMetadata?.tokenContract}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {isAgentActive && (
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 bg-blue-100 px-4 py-2 rounded-full">
+                      <Timer className="text-blue-500" size={16} />
+                      <span className="text-blue-700 font-medium">
+                        {Math.floor(countdown / 60)}:
+                        {(countdown % 60).toString().padStart(2, "0")}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
+                      <Bot className="text-green-500 animate-pulse" size={16} />
+                      <span className="text-green-700 font-medium">Active</span>
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={toggleAgent}
+                  className={`flex items-center px-6 py-3 rounded-lg transition-colors ${
+                    isAgentActive
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-green-500 hover:bg-green-600"
+                  } text-white font-medium`}
+                >
+                  {isAgentActive ? (
+                    <>
+                      <PauseCircle className="mr-2" size={20} />
+                      Stop Agent
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2" size={20} />
+                      Start Agent
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Agent Status and Control */}
-            <div className="flex items-center space-x-4">
-              {isAgentActive && (
-                <div className="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
-                  <Bot className="text-green-500 animate-pulse" size={20} />
-                  <span className="text-green-700 text-sm">
-                    {currentlyMonitoring
-                      ? `Monitoring ${currentlyMonitoring.slice(
-                          0,
-                          6
-                        )}...${currentlyMonitoring.slice(-4)}`
-                      : "Listening..."}
-                  </span>
+            {/* Meme Stats Display */}
+            <div className="mt-6 space-y-4">
+              {Object.entries(monitoringStats).map(([ipId, stats]) => (
+                <div key={ipId} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">
+                    Meme: {ipId.slice(0, 6)}...{ipId.slice(-4)}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Views</p>
+                      <p className="text-xl font-bold">{stats?.views || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Shares</p>
+                      <p className="text-xl font-bold">
+                        {stats?.shares?.total || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Total Engagement</p>
+                      <p className="text-xl font-bold text-blue-600">
+                        {(stats?.views || 0) + (stats?.shares?.total || 0)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <button
-                onClick={toggleAgent}
-                className={`flex items-center px-6 py-3 rounded-lg transition-colors ${
-                  isAgentActive
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600"
-                } text-white`}
-              >
-                {isAgentActive ? (
-                  <>
-                    <PauseCircle className="mr-2" size={20} />
-                    Stop Agent
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2" size={20} />
-                    Start Agent
-                  </>
-                )}
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* Meme Stats Display */}
-          <div className="mt-6 space-y-4">
-            {Object.entries(monitoringStats).map(([ipId, stats]) => (
-              <div key={ipId} className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">
-                  Meme: {ipId.slice(0, 6)}...{ipId.slice(-4)}
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Views</p>
-                    <p className="text-xl font-bold">{stats?.views || 0}</p>
+          {/* Transaction History */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
+            <div className="space-y-4">
+              {transactions.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  No transactions yet
+                </p>
+              ) : (
+                transactions.map((tx, index) => (
+                  <div key={index} className="border-b pb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">
+                          Meme: {tx.memeId.slice(0, 6)}...{tx.memeId.slice(-4)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(tx.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        {tx.status}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Shares</p>
-                    <p className="text-xl font-bold">
-                      {stats?.shares?.total || 0}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Status</p>
-                    <p
-                      className={`text-sm ${
-                        checkLicensingCriteria(stats)
-                          ? "text-green-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {checkLicensingCriteria(stats)
-                        ? "Ready to License"
-                        : "Monitoring"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Settings Card */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Agent Settings</h2>
+        {/* Monitoring Status */}
+        <div className="bg-white rounded-xl shadow-lg p-6 h-fit">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Monitoring Status</h2>
             <Settings size={20} className="text-gray-500" />
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check Frequency (hours)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="72"
-                value={monitoringSettings.checkFrequency}
-                onChange={(e) =>
-                  setMonitoringSettings({
-                    ...monitoringSettings,
-                    checkFrequency: parseInt(e.target.value),
-                  })
-                }
-                className="w-full p-2 border rounded"
-              />
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">
+                Currently Monitoring:
+              </p>
+              <p className="font-medium">
+                {currentlyMonitoring ? (
+                  <>
+                    Meme: {currentlyMonitoring.slice(0, 6)}...
+                    {currentlyMonitoring.slice(-4)}
+                  </>
+                ) : (
+                  "Waiting for next cycle..."
+                )}
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                View Threshold
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={monitoringSettings.viewThreshold}
-                onChange={(e) =>
-                  setMonitoringSettings({
-                    ...monitoringSettings,
-                    viewThreshold: parseInt(e.target.value),
-                  })
-                }
-                className="w-full p-2 border rounded"
-              />
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Check Interval:</p>
+              <p className="font-medium">Every 60 seconds</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Share Threshold
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={monitoringSettings.shareThreshold}
-                onChange={(e) =>
-                  setMonitoringSettings({
-                    ...monitoringSettings,
-                    shareThreshold: parseInt(e.target.value),
-                  })
-                }
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">
-                Auto-License Memes
-              </label>
-              <input
-                type="checkbox"
-                checked={monitoringSettings.autoLicense}
-                onChange={(e) =>
-                  setMonitoringSettings({
-                    ...monitoringSettings,
-                    autoLicense: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 text-blue-600"
-              />
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Total Memes Tracked:</p>
+              <p className="font-medium">{memeIds.length}</p>
             </div>
           </div>
         </div>
