@@ -25,6 +25,34 @@ function Dashboard() {
   const [currentMeme, setCurrentMeme] = useState(null);
   const [promptInput, setPromptInput] = useState("");
 
+  // Add new state for trending topics
+  const [trendingTopics, setTrendingTopics] = useState([
+    {
+      id: 1,
+      title: "ETHPONDY",
+      quote: "When you struggle with a problem, that's when you understand it.",
+      engagement: 50,
+    },
+    {
+      id: 2,
+      title: "DEFI WORLD",
+      quote: "Building the future of finance, one block at a time.",
+      engagement: 45,
+    },
+    {
+      id: 3,
+      title: "NFT SPACE",
+      quote: "Digital ownership is revolutionizing how we think about assets.",
+      engagement: 38,
+    },
+    {
+      id: 4,
+      title: "WEB3 SOCIAL",
+      quote: "Decentralized social networks are the next frontier.",
+      engagement: 42,
+    },
+  ]);
+
   // const {safeAddress} = useSafe();
 
   const openai = new OpenAI({
@@ -215,20 +243,16 @@ function Dashboard() {
             <span>Topics</span>
           </div>
         </div>
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 
-          gap-4 sm:gap-6 md:gap-8 lg:gap-10 xl:gap-12 mx-auto"
-        >
-          {Array(8)
-            .fill(0)
-            .map((_, i) => (
-              <div key={i} className="flex justify-center">
-                <TopicCard
-                  className="w-[90%] sm:w-[80%] md:w-[75%] lg:w-[70%] xl:w-[65%] 
-                h-[200px] sm:h-[250px] md:h-[280px] lg:h-[300px] xl:h-[320px]"
-                />
-              </div>
-            ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-10 xl:gap-12 mx-auto">
+          {trendingTopics.map((topic) => (
+            <div key={topic.id} className="flex justify-center">
+              <TopicCard
+                title={topic.title}
+                quote={topic.quote}
+                engagement={topic.engagement}
+              />
+            </div>
+          ))}
         </div>
         <div className="flex items-center justify-center">
           <div className="flex items-center justify-center w-[400px] my-16">

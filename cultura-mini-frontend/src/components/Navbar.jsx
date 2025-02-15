@@ -203,12 +203,6 @@ function Navbar() {
               Explore
             </Link>
             <Link
-              to="/history"
-              className={isActive("/history") ? "font-bold text-lg" : ""}
-            >
-              My Memes
-            </Link>
-            <Link
               to="/profile"
               className={isActive("/profile") ? "font-bold text-lg" : ""}
             >
