@@ -99,7 +99,7 @@ function Dashboard() {
         model: "dall-e-2",
         prompt: `Create a high-quality, funny meme-style image based on the topic: "${topic}". 
   The image should be visually appealing, feature expressive characters, and include relevant elements that enhance the humor. 
-  Ensure the meme is easily understandable, relatable, and follows a modern meme format.`,
+  Ensure the meme is easily understandable, relatable, and follows a modern meme format and make sure you avoid captions over it.`,
         response_format: "b64_json",
       });
 
